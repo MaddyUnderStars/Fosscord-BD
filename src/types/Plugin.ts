@@ -1,5 +1,4 @@
-//META{"name":"HelloWorld"}*//
-class HelloWorld {
+export default interface Plugin {
 	/**
 	 * @name getName
 	 * The name for the plugin to be displayed to the user in
@@ -7,19 +6,15 @@ class HelloWorld {
 	 * 
 	 * @returns {string} - the name for the plugin.
 	 */
-	getName(): string {
-		return 'HelloWorld'
-	}
+	getName?(): string;
 
 	/**
 	 * @name getDescription
 	 * The description of the plugin shown in the plugins page.
 	 * 
-	 * @returns {string} - the description of the plugin.
+	 * @returs {string} - the description of the plugin.
 	 */
-	getDescription(): string {
-		return 'A BetterDiscord plugin starter template in TypeScript.'
-	}
+	getDescription?(): string;
 
 	/**
 	 * @name getVersion
@@ -27,9 +22,7 @@ class HelloWorld {
 	 * 
 	 * @returns {string} - the version of the plugin.
 	 */
-	getVersion(): string {
-		return '0.0.1'
-	}
+	getVersion?(): string;
 
 	/**
 	 * @name getAuthor
@@ -37,31 +30,26 @@ class HelloWorld {
 	 * 
 	 * @returns {string} - the author of the plugin.
 	 */
-	getAuthor(): string {
-		return 'Acidic9'
-	}
-
+	getAuthor?(): string;
 
 	/**
 	 * @name load
 	 * Called when the plugin is loaded regardless of if it is enabled or disabled.
 	 */
-	load() {}
-
+	load?(): void;
 
 	/**
 	 * @name start
 	 * Called when the plugin is enabled or when it is loaded and was previously
 	 * reloaded (such as discord start or reload).
 	 */
-	start() {}
+	start?(): void;
 
 	/**
 	 * @name stop
 	 * Called when the plugin is disabled.
 	 */
-	stop() {}
-
+	stop?(): void;
 
 	/**
 	 * @name observer
@@ -71,15 +59,14 @@ class HelloWorld {
 	 * 
 	 * @param {MutationObserver} changes - The mutation that occurred.
 	 */
-	observer(changes: MutationObserver) {}
+	observer?(changes: MutationObserver): void;
 
 	/**
 	 * @name onSwitch
 	 * Called every time the user navigates such as changing channel,
 	 * changing servers, changing to friends list, etc.
 	 */
-	onSwitch() {}
-
+	onSwitch?(): void;
 
 	/**
 	 * @name getSettingsPanel
@@ -91,7 +78,5 @@ class HelloWorld {
 	 * @Returns {string|HTMLElement} - either a valid string containing the html for the panel or an actual
 	 * element to be injected into the settings panel.
 	 */
-	getSettingsPanel(): string | HTMLElement {
-		return '<h3>Settings Panel</h3>'
-	}
+	getSettingsPanel?(): String | HTMLElement;
 }

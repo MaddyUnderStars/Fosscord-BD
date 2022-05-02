@@ -1,16 +1,17 @@
 {
 	"compilerOptions": {
 		"target": "ESNEXT",
-		"module": "ESNext",
+		"module": "commonjs",
 		"moduleResolution": "node",
 		"outDir": "../",
 		"removeComments": false,
 		"strict": true,
+		"noImplicitUseStrict": true,
 		"alwaysStrict": false,
 		"esModuleInterop": true
 	},
 	"include": [
-		"./src/helloworld.plugin.ts",
+		"src/fosscord.plugin.ts",
 		"./src/types/**/*.d.ts"
 	],
 	"exclude": [

@@ -1,30 +1,18 @@
-# BetterDiscord Plugin Template in TypeScript
-A starter template for creating plugins for BetterDiscord in Typescript.
+# FosscordBD ( WIP )
+A BetterDiscord plugin that allows connections to multiple Fosscord instances.
 
-## Introduction
-This plugin template should be a folder inside your BetterDiscord plugins directory.
-*Typically `C:\Users\<username>\AppData\Roaming\BetterDiscord\plugins`*
-
-The file structure should be (at minimal) as so:
-
+## Build
+In BetterDiscord plugin dir:
 ```
-plugins/                           # BetterDiscord plugins dir
-├── helloworld.plugin.js           # Generated as output file
-└── helloworld/
-    └── src/                       # TypeScript source code
-        └── helloworld.plugin.ts   # Main entry file for plugin
+git clone https://github.com/MaddyUnderStars/Fosscord-BD.git
+cd Fosscord-BD
+npm run build
 ```
+The output will be built in the plugin directory.
 
-## Getting Started
+## Todo
 
-1. CD into BetterDiscord plugins directory
-
-   `cd C:\Users\<username>\AppData\Roaming\BetterDiscord\plugins`
-
-2. Clone directory
-
-   `git clone https://github.com/Acidic9/betterdiscord-typescript-template.git -o helloworld && cd helloworld`
-
-2. Build project to generate `helloworld.plugin.js` file in the plugins directory
-
-   `yarn run build`
+* Render guilds in the client
+* Allow users to navigate to these guilds, render channels
+* Handle dispatch events besides ready ( eg message create, etc )
+* Lots more!
