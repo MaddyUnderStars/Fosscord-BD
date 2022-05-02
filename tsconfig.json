@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"target": "ESNEXT",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"outDir": "../",
+		"removeComments": false,
+		"strict": true,
+		"alwaysStrict": false,
+		"esModuleInterop": true
+	},
+	"include": [
+		"./src/helloworld.plugin.ts",
+		"./src/types/**/*.d.ts"
+	],
+	"exclude": [
+		"./node_modules/**/*"
+	]
+}

@@ -1,0 +1,12 @@
+{
+	"name": "helloworld",
+	"version": "0.0.1",
+	"scripts": {
+		"build": "tsc",
+		"watch": "tsc --watch"
+	},
+	"dependencies": {
+		"@types/react": "^16.7.18",
+		"@types/react-dom": "^16.0.11"
+	}
+}
