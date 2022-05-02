@@ -34,7 +34,19 @@ const Log = {
 	}
 };
 
+class ClientEvent extends Event {
+	data?: any;
+	constructor(type: string, props: any) {
+		super(type);
+		this.data = props;
+	}
+}
+
 class Client extends EventTarget {
+	constructor() {
+		super();
+	}
+
 	#socket?: WebSocket;
 	#instance?: Instance = {};
 	#heartbeat?: any;
@@ -70,6 +82,9 @@ class Client extends EventTarget {
 			this.guilds = payload.d.guilds as Guild[];
 
 			this.dispatchEvent(new Event("ready"));
+		},
+		"MESSAGE_CREATE": (payload: GatewayPayload) => {
+			this.dispatchEvent(new ClientEvent("messageCreate", payload.d));
 		}
 	};
 
@@ -189,18 +204,33 @@ class FosscordBD implements Plugin {
 	};
 
 	start = async () => {
+        if (!global.ZeresPluginLibrary) return window.BdApi.alert("Library Missing",`The library plugin needed for ${this.getName()} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+        ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "LINK_TO_RAW_CODE");
+
 		this.loadClientSettings();
 
+		// Start our clients
 		for (var instance of this.settings!.instances) {
 			Log.msg(`Attempting ${instance.gatewayUrl}`);
 			const client = new Client();
 			client.addEventListener("ready", (e: Event) => {
 				Log.msg(`Ready on ${client.instance?.gatewayUrl} as ${client.user!.username}`);
+
+				// TODO: Spoof GuildStore, UserStore, etc to also fetch our custom data?
+				// -> Briefly tested in console, client still tried to send request to discord.com?
+				
+				// TODO: Forward specific events ( message create, guild create, etc ) to client Dispatcher
+				// ZLibrary.DiscordModules.Dispatcher.dispatch({  })
 			});
+
+			client.addEventListener("messageCreate", (e: ClientEvent) => {
+				Log.msg(e.data);
+			})
 
 			client.start(instance);
 			this.clients!.push(client);
 		}
+
 	};
 
 	stop = async () => {
