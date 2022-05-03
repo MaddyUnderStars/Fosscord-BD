@@ -7,10 +7,7 @@ declare module ZLibrary {
 		Dispatcher: {
 			dispatch(event: {
 				type: string,
-				channelId: string,
-				message: any;	// TODO: Message object
-				optimistic?: boolean;
-				isPushNotification?: boolean;
+				[key: string]: any;
 			}): void;
 		}
 	};

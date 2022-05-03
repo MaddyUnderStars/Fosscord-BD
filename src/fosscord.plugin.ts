@@ -36,7 +36,7 @@ const Log = {
 
 class ClientEvent extends Event {
 	data?: any;
-	constructor(type: string, props: any) {
+	constructor(type: string, props?: any) {
 		super(type);
 		this.data = props;
 	}
@@ -64,28 +64,25 @@ class Client extends EventTarget {
 		[GatewayOpcode.Dispatch]: (payload: GatewayPayload) => {
 			this.#sequence = payload.s!;	//Always present for dispatch
 
+			this.dispatchEvent(new ClientEvent(payload.t as string, payload.d))
+
 			const handler = this.#dispatchHandlers[payload.t!];
 			if (!handler) {
-				Log.warn(`No handler for dispatch ${payload.t}`);
+				//Log.warn(`No handler for dispatch ${payload.t}`);
 				return;
 			}
 
 			return handler(payload);
 		},
 		[GatewayOpcode.Hello]: (payload: GatewayPayload) => this.#setHeartbeat(payload.d.heartbeat_interval),
-		[GatewayOpcode.HeartbeatAck]: () => {}
+		[GatewayOpcode.HeartbeatAck]: () => { }
 	};
 
 	#dispatchHandlers: { [key: string]: any; } = {
 		"READY": (payload: GatewayPayload) => {
 			this.user = payload.d.user as User;;
 			this.guilds = payload.d.guilds as Guild[];
-
-			this.dispatchEvent(new Event("ready"));
 		},
-		"MESSAGE_CREATE": (payload: GatewayPayload) => {
-			this.dispatchEvent(new ClientEvent("messageCreate", payload.d));
-		}
 	};
 
 	#send = (data: GatewayPayload): void => {
@@ -102,8 +99,8 @@ class Client extends EventTarget {
 			op: GatewayOpcode.Identify,
 			d: {
 				token: this.#instance?.token,
-				capabilities: 125,
-				compress: false,
+				// capabilities: 125,
+				// compress: false,
 			}
 		});
 	};
@@ -204,27 +201,56 @@ class FosscordBD implements Plugin {
 	};
 
 	start = async () => {
-        if (!global.ZeresPluginLibrary) return window.BdApi.alert("Library Missing",`The library plugin needed for ${this.getName()} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
-        ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "LINK_TO_RAW_CODE");
+		if (!global.ZeresPluginLibrary) return window.BdApi.alert("Library Missing", `The library plugin needed for ${this.getName()} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+		ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "LINK_TO_RAW_CODE");
 
 		this.loadClientSettings();
 
 		// Start our clients
 		for (var instance of this.settings!.instances) {
 			Log.msg(`Attempting ${instance.gatewayUrl}`);
+			const url = new URL(instance.gatewayUrl!);
 			const client = new Client();
 			client.addEventListener("ready", (e: Event) => {
 				Log.msg(`Ready on ${client.instance?.gatewayUrl} as ${client.user!.username}`);
 
 				// TODO: Spoof GuildStore, UserStore, etc to also fetch our custom data?
 				// -> Briefly tested in console, client still tried to send request to discord.com?
-				
+
 				// TODO: Forward specific events ( message create, guild create, etc ) to client Dispatcher
 				// ZLibrary.DiscordModules.Dispatcher.dispatch({  })
 			});
 
-			client.addEventListener("messageCreate", (e: ClientEvent) => {
-				Log.msg(e.data);
+			client.addEventListener("GUILD_CREATE", (e: ClientEvent) => {
+				// const dispatch = { type: "GUILD_CREATE", guild: {
+				// 	...e.data,
+				// 	embedded_activities: [],
+				// 	getGuildId() {
+				// 		return e.data.id;
+				// 	}
+				// } };
+				// console.log(dispatch);
+				// ZLibrary.DiscordModules.Dispatcher.dispatch(dispatch);
+			});
+
+			client.addEventListener("MESSAGE_CREATE", (e: ClientEvent) => {
+				const { data } = e;
+				ZLibrary.DiscordModules.Dispatcher.dispatch({ type: "MESSAGE_CREATE", channelId: "970961374631051308", message: {
+					type: data.type,
+					content: data.content,
+					channel_id: "970961374631051308",	// change this ID to whatever you want the messages to be forwarded to
+					guild_id: "970961374631051305",		// TODO: create a fake guild object, prevent discord resetting gateway when it tries to load it
+					id: data.id,
+					author: {
+						id: data.author.id,
+						username: `${data.author.username}@${url.hostname}`,
+						discriminator: data.author.discriminator,
+						bot: data.author.bot
+					},
+					mentions: data.mentions,
+					timestamp: data.timestamp,
+					embeds: data.embeds,
+				} })
 			})
 
 			client.start(instance);
