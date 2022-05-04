@@ -64,15 +64,12 @@ class Client extends EventTarget {
 		[GatewayOpcode.Dispatch]: (payload: GatewayPayload) => {
 			this.#sequence = payload.s!;	//Always present for dispatch
 
-			this.dispatchEvent(new ClientEvent(payload.t as string, payload.d))
-
 			const handler = this.#dispatchHandlers[payload.t!];
-			if (!handler) {
-				//Log.warn(`No handler for dispatch ${payload.t}`);
-				return;
+			if (handler) {
+				handler(payload);
 			}
 
-			return handler(payload);
+			this.dispatchEvent(new ClientEvent(payload.t as string, payload.d));
 		},
 		[GatewayOpcode.Hello]: (payload: GatewayPayload) => this.#setHeartbeat(payload.d.heartbeat_interval),
 		[GatewayOpcode.HeartbeatAck]: () => { }
@@ -138,7 +135,7 @@ class Client extends EventTarget {
 		this.#socket.addEventListener("close", () => {
 			clearInterval(this.#heartbeat);
 			Log.msg(`Disconnected from gateway ( ${this.#instance?.gatewayUrl} )`);
-			this.dispatchEvent(new Event("close"));
+			this.dispatchEvent(new ClientEvent("close"));
 		});
 	};
 
@@ -200,63 +197,114 @@ class FosscordBD implements Plugin {
 		};
 	};
 
+	// Dispatch fake guild information
+	makeGuild = (guild: Guild, client: Client) => {
+		// TODO: It seems dispatching channels is not enough to render them.
+
+		// for (var channel of guild.channels) {
+		// 	channel = {
+		// 		...channel,
+
+		// 		rawRecipients: [],
+
+		// 		getGuildId: () => guild.id,
+		// 		isGuildStageVoice: () => false,
+		// 		isPrivate: () => false,
+		// 		isOwner: () => true,
+		// 	};
+		// }
+
+		ZLibrary.DiscordModules.Dispatcher.dispatch({
+			type: "GUILD_CREATE", guild: {
+				...guild,
+				channels: [],
+				members: [],
+				presences: [],
+				embedded_activities: [],
+				emoji: [],
+			}
+		});
+
+		// for (var channel of guild.channels) {
+		// 	ZLibrary.DiscordModules.Dispatcher.dispatch({
+		// 		type: "CHANNEL_CREATE",
+		// 		// guildHashes: {},
+		// 		channel: {
+		// 			...channel,
+		// 			rawRecipients: [],
+		// 			getGuildId: () => guild.id,
+		// 			isGuildStageVoice: () => false,
+		// 			isPrivate: () => false,
+		// 			isOwner: () => true,
+		// 			toJS: () => channel,	//what is this function?
+		// 		}
+		// 	});
+		// }
+	};
+
 	start = async () => {
 		if (!global.ZeresPluginLibrary) return window.BdApi.alert("Library Missing", `The library plugin needed for ${this.getName()} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
 		ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "LINK_TO_RAW_CODE");
 
 		this.loadClientSettings();
+		
+		ZLibrary.Patcher.before("fosscord", ZLibrary.DiscordModules.Dispatcher, "dispatch", (thisObject: any, args: any[] | undefined, retVal: any) => {
+			if (!args) return;
+			const [event] = args;
+			
+			// Prevent this method for 'fake' guilds allows us to view them
+			if (event.type === "GUILD_SUBSCRIPTIONS_FLUSH") {
+				if (this.clients!.find((c: Client) => c.guilds!.find((g: Guild) => g.id == event.guildId))) {
+					Log.msg(`Preventing GUILD_SUBSCRIPTIONS_FLUSH for ${event.guildId}`);
+					args[0] = undefined; // TODO: this isn't how you do this properly
+				}
+			}
+		});
 
 		// Start our clients
 		for (var instance of this.settings!.instances) {
 			Log.msg(`Attempting ${instance.gatewayUrl}`);
 			const url = new URL(instance.gatewayUrl!);
 			const client = new Client();
-			client.addEventListener("ready", (e: Event) => {
+			client.addEventListener("READY", (e: ClientEvent) => {
 				Log.msg(`Ready on ${client.instance?.gatewayUrl} as ${client.user!.username}`);
 
-				// TODO: Spoof GuildStore, UserStore, etc to also fetch our custom data?
-				// -> Briefly tested in console, client still tried to send request to discord.com?
-
-				// TODO: Forward specific events ( message create, guild create, etc ) to client Dispatcher
-				// ZLibrary.DiscordModules.Dispatcher.dispatch({  })
+				for (var guild of client.guilds!) {
+					this.makeGuild(guild, client);
+				}
 			});
 
 			client.addEventListener("GUILD_CREATE", (e: ClientEvent) => {
-				// const dispatch = { type: "GUILD_CREATE", guild: {
-				// 	...e.data,
-				// 	embedded_activities: [],
-				// 	getGuildId() {
-				// 		return e.data.id;
-				// 	}
-				// } };
-				// console.log(dispatch);
-				// ZLibrary.DiscordModules.Dispatcher.dispatch(dispatch);
+				const guild: Guild = e.data;
+				this.makeGuild(guild, client);
 			});
 
 			client.addEventListener("MESSAGE_CREATE", (e: ClientEvent) => {
 				const { data } = e;
-				ZLibrary.DiscordModules.Dispatcher.dispatch({ type: "MESSAGE_CREATE", channelId: "970961374631051308", message: {
-					type: data.type,
-					content: data.content,
-					channel_id: "970961374631051308",	// change this ID to whatever you want the messages to be forwarded to
-					guild_id: "970961374631051305",		// TODO: create a fake guild object, prevent discord resetting gateway when it tries to load it
-					id: data.id,
-					author: {
-						id: data.author.id,
-						username: `${data.author.username}@${url.hostname}`,
-						discriminator: data.author.discriminator,
-						bot: data.author.bot
-					},
-					mentions: data.mentions,
-					timestamp: data.timestamp,
-					embeds: data.embeds,
-				} })
-			})
+				ZLibrary.DiscordModules.Dispatcher.dispatch({
+					type: "MESSAGE_CREATE", channelId: data.channel_id, message: {
+						...data,
+						// type: data.type,
+						// content: data.content,
+						// channel_id: "970961374631051308",	// change this ID to whatever you want the messages to be forwarded to
+						// guild_id: "970961374631051305",		// TODO: create a fake guild object, prevent discord resetting gateway when it tries to load it
+						// id: data.id,
+						// author: {
+						// 	id: data.author.id,
+						// 	username: `${data.author.username}@${url.hostname}`,
+						// 	discriminator: data.author.discriminator,
+						// 	bot: data.author.bot
+						// },
+						// mentions: data.mentions,
+						// timestamp: data.timestamp,
+						// embeds: data.embeds,
+					}
+				});
+			});
 
 			client.start(instance);
 			this.clients!.push(client);
 		}
-
 	};
 
 	stop = async () => {
@@ -264,5 +312,7 @@ class FosscordBD implements Plugin {
 			const client = this.clients![i];
 			client.stop();
 		}
+
+		ZLibrary.Patcher.unpatchAll("fosscord");
 	};
 }

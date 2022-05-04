@@ -12,6 +12,17 @@ declare module ZLibrary {
 		}
 	};
 
+	export var Patcher: {
+		before(caller: string, module: any, func: string, callback: any): void;
+		after(caller: string, module: any, func: string, callback: any): void;
+		instead(caller: string, module: any, func: string, callback: any): void;
+		unpatchAll(caller: string): void;
+	}
+
+	export var WebpackModules: {
+		getByProps(...args: string[]): void;
+	}
+
 	export var PluginUpdater: {
 		checkForUpdate(name: string, version: string, updateUrl: string): void;
 	}
