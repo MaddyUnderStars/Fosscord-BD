@@ -17,6 +17,15 @@ declare module ZLibrary {
 
 		ChannelStore: {
 			getChannels(id: string): any;
+		},
+
+		APIModule: {
+			get(url: string): any,
+			post(url: string): any,
+			put(url: string): any,
+			patch(url: string): any,
+			delete(url: string): any,
+			getAPIBaseURL(): any,
 		}
 	};
 

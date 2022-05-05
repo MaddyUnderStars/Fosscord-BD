@@ -35,8 +35,32 @@ const Log = {
 	}
 };
 
+class HttpClient {
+	static send = (client: Client, method: string, path: string, body: any = undefined) => new Promise((resolve, reject) => {
+		const xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = () => {
+			if (xhttp.readyState !== 4) return;
+			if (xhttp.status !== 200) reject(`Could not ${method} ${path}`);
+
+			resolve({
+				body: JSON.parse(xhttp.responseText),
+			});
+		};
+		xhttp.open(method, path, true);
+		xhttp.setRequestHeader("Authorization", client.instance!.token as string);
+		xhttp.send(body);
+	});
+}
+
 class Collection<T> extends Map<String, T> {
 	// TODO: Might be useful to add methods similar to discord.js's here?
+
+	find = (fn: (value: T, key: String, collection: Collection<T>) => any) => {
+		for (var [id, value] of this) {
+			if (fn(value, id, this))
+				return this.get(id);
+		}
+	};
 }
 
 class ClientEvent extends Event {
@@ -54,6 +78,7 @@ class Client extends EventTarget {
 
 	#socket?: WebSocket;
 	#instance?: Instance = {};
+	instanceUrl?: string;
 	#heartbeat?: any;
 	#sequence: number = -1;
 
@@ -65,10 +90,31 @@ class Client extends EventTarget {
 	user?: User;
 	guilds?: Collection<Guild>;
 	channels?: Collection<Channel>;
+	controlledIds: Set<String> = new Set();
 
 	#gatewayHandlers: { [key: number]: any; } = {
 		[GatewayOpcode.Dispatch]: (payload: GatewayPayload) => {
 			this.#sequence = payload.s!;	//Always present for dispatch
+
+			const recursivelyFindIds = (obj: any) => {
+				for (var [key, value] of Object.entries(obj)) {
+					if (value && typeof value === "object")
+						recursivelyFindIds(value);
+
+					if (key.toLowerCase().indexOf("_id") == -1	// bad detection algo lets gooo
+						|| key.toLowerCase().indexOf("id") == key.length - 3)
+						continue;
+					if (this.controlledIds.has(value as string)) continue;
+					if (!value || value == "null" || value == "undefined") continue;
+					// bad way of checking if it looks like a proper snowflake
+					if (!Number(value)) continue;
+
+					Log.msg(`${this.instanceUrl} controls ID ${key}:${value}`);
+					this.controlledIds.add(value as string);
+				}
+			};
+
+			recursivelyFindIds(payload.d);
 
 			const handler = this.#dispatchHandlers[payload.t!];
 			if (handler) {
@@ -76,6 +122,7 @@ class Client extends EventTarget {
 			}
 
 			this.dispatchEvent(new ClientEvent(payload.t as string, payload.d));
+			this.dispatchEvent(new ClientEvent("dispatch", payload));
 		},
 		[GatewayOpcode.Hello]: (payload: GatewayPayload) => this.#setHeartbeat(payload.d.heartbeat_interval),
 		[GatewayOpcode.HeartbeatAck]: () => { }
@@ -87,12 +134,14 @@ class Client extends EventTarget {
 			this.guilds = new Collection();
 			for (let guild of payload.d.guilds) {
 				this.guilds.set(guild.id, guild);
+				this.controlledIds.add(guild.id);
 			}
 
 			this.channels = new Collection();
 			for (let [id, guild] of this.guilds) {
 				for (let channel of guild.channels) {
 					this.channels.set(channel.id, channel);
+					this.controlledIds.add(channel.id);
 				}
 			}
 		},
@@ -141,7 +190,7 @@ class Client extends EventTarget {
 		this.#socket = new WebSocket(this.#instance!.gatewayUrl!);
 
 		this.#socket.addEventListener("open", (e) => {
-			Log.msg(`I have connected to gateway ( ${this.#instance?.gatewayUrl} )`);
+			Log.msg(`I have connected to gateway ( ${this.instanceUrl} )`);
 
 			this.#identify();
 		});
@@ -150,7 +199,7 @@ class Client extends EventTarget {
 
 		this.#socket.addEventListener("close", () => {
 			clearInterval(this.#heartbeat);
-			Log.msg(`Disconnected from gateway ( ${this.#instance?.gatewayUrl} )`);
+			Log.msg(`Disconnected from gateway ( ${this.instanceUrl} )`);
 			this.dispatchEvent(new ClientEvent("close"));
 		});
 	};
@@ -159,7 +208,7 @@ class Client extends EventTarget {
 		const payload: GatewayPayload = JSON.parse(e.data);
 		// only log the first few
 		if (this.#sequence < 0)
-			Log.msg(`Recieved from gateway ( ${this.#instance?.gatewayUrl} )`, payload.op);
+			Log.msg(`Recieved from gateway ( ${this.instanceUrl} )`, payload.op);
 
 		const handler = this.#gatewayHandlers[payload.op];
 		if (!handler) {
@@ -170,27 +219,25 @@ class Client extends EventTarget {
 		handler(payload);
 	};
 
+	// TODO: This function is dumb. Should it return anything?
+	// Do we await the login methods?
 	start = async (instance: Instance): Promise<boolean> => {
 		this.#instance = instance;
 
-		if (!this.#instance.gatewayUrl) {
-			Log.error("Cannot login without gateway endpoint");
-			return false;
+		if (this.#instance.gatewayUrl
+			&& this.#instance.token) {
+			this.instanceUrl = new URL(this.#instance.gatewayUrl).host;
+			this.#loginGateway();
+			return true;
 		}
 
-		if (!this.#instance.token) {
-			if (!this.#instance.apiUrl ||
-				!this.#instance.username ||
-				!this.#instance.password) {
-				Log.error("Cannot login through API without api endpoint, username and password");
-				return false;
-			}
-
+		if (this.#instance.apiUrl
+			&& this.#instance.username
+			&& this.#instance.password) {
 			return await this.#loginApi();
 		}
 
-		this.#loginGateway();
-		return true;
+		return false;
 	};
 
 	stop = () => {
@@ -255,7 +302,7 @@ class FosscordBD implements Plugin {
 				}
 			*/
 
-			const client = this.clients!.find((c: Client) => c.guilds!.get(event.guildId));
+			const client = this.clients?.find((c: Client) => c.guilds?.get(event.guildId));
 			if (!client) {
 				return original(event);
 			}
@@ -270,15 +317,13 @@ class FosscordBD implements Plugin {
 				const guildId = event.guildId;
 				const guild = client.guilds?.get(guildId);
 				if (guild) {
-					Log.msg(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`)
+					Log.msg(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`);
 					return original({
 						...event,
 						channelId: guild.channels[0].id,
-					})
+					});
 				}
 			}
-
-			Log.msg(event); // TODO: Remove
 		});
 
 
@@ -292,7 +337,7 @@ class FosscordBD implements Plugin {
 
 			const channel = client!.channels!.get(id);
 			if (!channel) return null;
-			Log.msg(`Redirected getChannel for ${id} to`, channel);
+			// Log.msg(`Redirected getChannel for ${id} to`, channel);
 			return {
 				...channel,
 
@@ -322,16 +367,44 @@ class FosscordBD implements Plugin {
 				getRecipientId: () => client.user!.id,
 				isArchivedThread: () => false,
 				isCategory: () => false,
+				isManaged: () => false,
+				isGroupDM: () => false,
 			};
 		});
 
+		ZLibrary.Patcher.instead(
+			"fosscord",
+			ZLibrary.DiscordModules.APIModule,
+			"get",
+			async (thisObject: any, args: any[], original: any) => {
+				const [request] = args;
+				const {
+					url,
+					query,
+					retries,
+					oldFormErrors,
+				} = request;
+
+				if (!this.clients || !args || !url) return await original(...args);
+
+				for (var client of this.clients) {
+					for (var id of client.controlledIds) {
+						if (url.indexOf(id) == -1) continue;
+
+						// dumb solution
+						const apiUrl = "https://" + client.instanceUrl + "/api/v9";
+						return await HttpClient.send(client, "GET", apiUrl + url);
+					}
+				}
+
+				return await original(...args);
+			});
+
 		// Start our clients
 		for (var instance of this.settings!.instances) {
-			Log.msg(`Attempting ${instance.gatewayUrl}`);
-			const url = new URL(instance.gatewayUrl!);
 			const client = new Client();
 			client.addEventListener("READY", (e: ClientEvent) => {
-				Log.msg(`Ready on ${client.instance?.gatewayUrl} as ${client.user!.username}`);
+				Log.msg(`Ready on ${client.instanceUrl} as ${client.user!.username}`);
 
 				for (var [id, guild] of client.guilds!) {
 					this.makeGuild(guild);
@@ -344,27 +417,31 @@ class FosscordBD implements Plugin {
 			});
 
 			client.addEventListener("MESSAGE_CREATE", (e: ClientEvent) => {
-				const { data } = e;
+				const data = e.data; // as Message;
 				ZLibrary.DiscordModules.Dispatcher.dispatch({
-					type: "MESSAGE_CREATE", channelId: data.channel_id, message: {
-						...data,
-						// type: data.type,
-						// content: data.content,
-						// channel_id: "970961374631051308",	// change this ID to whatever you want the messages to be forwarded to
-						// guild_id: "970961374631051305",		// TODO: create a fake guild object, prevent discord resetting gateway when it tries to load it
-						// id: data.id,
-						// author: {
-						// 	id: data.author.id,
-						// 	username: `${data.author.username}@${url.hostname}`,
-						// 	discriminator: data.author.discriminator,
-						// 	bot: data.author.bot
-						// },
-						// mentions: data.mentions,
-						// timestamp: data.timestamp,
-						// embeds: data.embeds,
-					}
+					type: "MESSAGE_CREATE", channelId: data.channel_id, message: data
 				});
 			});
+
+			// TODO: This doesn't work and I haven't tested why but it sends things slightly differently than above
+			// client.addEventListener("dispatch", (e: ClientEvent) => {
+			// 	const data = e.data as GatewayPayload;
+			// 	if (data.t?.indexOf("_CREATE") == -1) return;
+			// 	if (data.t == "GUILD_CREATE") return;	//we handle this elsewhere
+
+			// 	const test = data.t!.substring(0, data.t!.indexOf("_CREATE")).toLowerCase();
+
+			// 	const test2 = {
+			// 		type: data.t as string,
+			// 		channelId: data.d.channel_id,
+			// 		guildId: data.d.guild_id,
+			// 		messageId: data.d.message_id,
+			// 		[test]: data.d
+			// 	};
+			// 	Log.msg(test2);
+
+			// 	ZLibrary.DiscordModules.Dispatcher.dispatch(test2)
+			// })
 
 			client.start(instance);
 			this.clients!.push(client);
