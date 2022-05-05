@@ -12,7 +12,8 @@ The output will be built in the plugin directory.
 
 ## Todo
 
-* Render guilds in the client
-* Allow users to navigate to these guilds, render channels
+* ~~Render guilds in the client~~ Done
+* ~~Allow users to navigate to these guilds~~ done, render channels
 * Handle dispatch events besides ready ( eg message create, etc )
+* Patch Discord API to send requests to fosscord for IDs we control
 * Lots more!

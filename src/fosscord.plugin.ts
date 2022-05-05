@@ -7,6 +7,7 @@ import GatewayPayload from "./types/GatewayPayload";
 
 import User from "./types/User";
 import Guild from "./types/Guild";
+import Channel from "./types/Channel";
 
 enum GatewayOpcode {
 	Dispatch = 0,
@@ -34,6 +35,10 @@ const Log = {
 	}
 };
 
+class Collection<T> extends Map<String, T> {
+	// TODO: Might be useful to add methods similar to discord.js's here?
+}
+
 class ClientEvent extends Event {
 	data?: any;
 	constructor(type: string, props?: any) {
@@ -58,7 +63,8 @@ class Client extends EventTarget {
 
 	// TODO: Store this better
 	user?: User;
-	guilds?: Guild[];
+	guilds?: Collection<Guild>;
+	channels?: Collection<Channel>;
 
 	#gatewayHandlers: { [key: number]: any; } = {
 		[GatewayOpcode.Dispatch]: (payload: GatewayPayload) => {
@@ -78,7 +84,17 @@ class Client extends EventTarget {
 	#dispatchHandlers: { [key: string]: any; } = {
 		"READY": (payload: GatewayPayload) => {
 			this.user = payload.d.user as User;;
-			this.guilds = payload.d.guilds as Guild[];
+			this.guilds = new Collection();
+			for (let guild of payload.d.guilds) {
+				this.guilds.set(guild.id, guild);
+			}
+
+			this.channels = new Collection();
+			for (let [id, guild] of this.guilds) {
+				for (let channel of guild.channels) {
+					this.channels.set(channel.id, channel);
+				}
+			}
 		},
 	};
 
@@ -197,23 +213,7 @@ class FosscordBD implements Plugin {
 		};
 	};
 
-	// Dispatch fake guild information
-	makeGuild = (guild: Guild, client: Client) => {
-		// TODO: It seems dispatching channels is not enough to render them.
-
-		// for (var channel of guild.channels) {
-		// 	channel = {
-		// 		...channel,
-
-		// 		rawRecipients: [],
-
-		// 		getGuildId: () => guild.id,
-		// 		isGuildStageVoice: () => false,
-		// 		isPrivate: () => false,
-		// 		isOwner: () => true,
-		// 	};
-		// }
-
+	makeGuild = (guild: Guild) => {
 		ZLibrary.DiscordModules.Dispatcher.dispatch({
 			type: "GUILD_CREATE", guild: {
 				...guild,
@@ -224,22 +224,6 @@ class FosscordBD implements Plugin {
 				emoji: [],
 			}
 		});
-
-		// for (var channel of guild.channels) {
-		// 	ZLibrary.DiscordModules.Dispatcher.dispatch({
-		// 		type: "CHANNEL_CREATE",
-		// 		// guildHashes: {},
-		// 		channel: {
-		// 			...channel,
-		// 			rawRecipients: [],
-		// 			getGuildId: () => guild.id,
-		// 			isGuildStageVoice: () => false,
-		// 			isPrivate: () => false,
-		// 			isOwner: () => true,
-		// 			toJS: () => channel,	//what is this function?
-		// 		}
-		// 	});
-		// }
 	};
 
 	start = async () => {
@@ -247,18 +231,98 @@ class FosscordBD implements Plugin {
 		ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "LINK_TO_RAW_CODE");
 
 		this.loadClientSettings();
-		
-		ZLibrary.Patcher.before("fosscord", ZLibrary.DiscordModules.Dispatcher, "dispatch", (thisObject: any, args: any[] | undefined, retVal: any) => {
+
+		ZLibrary.Patcher.instead("fosscord", ZLibrary.DiscordModules.Dispatcher, "dispatch", (thisObject: any, args: any[] | undefined, original: any) => {
 			if (!args) return;
 			const [event] = args;
-			
-			// Prevent this method for 'fake' guilds allows us to view them
+
+			/*
+				When a channel is selected, 2 events are fired: CHANNEL_SELECT and UPDATE_CHANNEL_LIST_DIMENSIONS
+
+				CHANNEL_SELECT: {
+					"type": "CHANNEL_SELECT",
+					"guildId": string | null,
+					"channelId": string | null,
+					"messageId": string | null
+				}
+
+				Null is sent for all 3 when going to Home
+
+				UPDATE_CHANNEL_LIST_DIMENSIONS: {
+					"type": "UPDATE_CHANNEL_LIST_DIMENSIONS",
+					"guildId": "",
+					"scrollTop": 0
+				}
+			*/
+
+			const client = this.clients!.find((c: Client) => c.guilds!.get(event.guildId));
+			if (!client) {
+				return original(event);
+			}
+
+			// This event seems to cause the server to kill our connection
 			if (event.type === "GUILD_SUBSCRIPTIONS_FLUSH") {
-				if (this.clients!.find((c: Client) => c.guilds!.find((g: Guild) => g.id == event.guildId))) {
-					Log.msg(`Preventing GUILD_SUBSCRIPTIONS_FLUSH for ${event.guildId}`);
-					args[0] = undefined; // TODO: this isn't how you do this properly
+				Log.msg(`Preventing ${event.type} for ${event.guildId}`, event);
+				return;
+			}
+
+			if (event.type === "CHANNEL_SELECT" && !event.channelId) {
+				const guildId = event.guildId;
+				const guild = client.guilds?.get(guildId);
+				if (guild) {
+					Log.msg(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`)
+					return original({
+						...event,
+						channelId: guild.channels[0].id,
+					})
 				}
 			}
+
+			Log.msg(event); // TODO: Remove
+		});
+
+
+		ZLibrary.Patcher.instead("fosscord", ZLibrary.DiscordModules.ChannelStore, "getChannel", (thisObject: any, args: any[], original: any) => {
+			if (!args) return;
+			const [id] = args;
+			if (!id) return;
+
+			const client = this.clients!.find((c: Client) => c.channels?.get(id));
+			if (!client) return original(id);
+
+			const channel = client!.channels!.get(id);
+			if (!channel) return null;
+			Log.msg(`Redirected getChannel for ${id} to`, channel);
+			return {
+				...channel,
+
+				roles: {
+					[channel.id]: {
+						permissions: 4398046511103n,	// Magic number is admin perms. TODO: Is this format expected?
+					}
+				},
+				rawRecipients: [],
+				permissionOverwrites: {},
+
+				getGuildId: () => channel.guild_id,
+				isGuildStageVoice: () => false,
+				isPrivate: () => false,
+				isOwner: () => true,
+				toJS: () => channel,	//what is this function?
+				isForumChannel: () => false,
+				isForumPost: () => false,
+				isVocal: () => false,
+				isThread: () => false,
+				isDM: () => false,
+				isNSFW: () => false,
+				isGuildVoice: () => false,
+				isDirectory: () => false,
+				isSystemDM: () => false,
+				isMultiUserDM: () => false,
+				getRecipientId: () => client.user!.id,
+				isArchivedThread: () => false,
+				isCategory: () => false,
+			};
 		});
 
 		// Start our clients
@@ -269,14 +333,14 @@ class FosscordBD implements Plugin {
 			client.addEventListener("READY", (e: ClientEvent) => {
 				Log.msg(`Ready on ${client.instance?.gatewayUrl} as ${client.user!.username}`);
 
-				for (var guild of client.guilds!) {
-					this.makeGuild(guild, client);
+				for (var [id, guild] of client.guilds!) {
+					this.makeGuild(guild);
 				}
 			});
 
 			client.addEventListener("GUILD_CREATE", (e: ClientEvent) => {
 				const guild: Guild = e.data;
-				this.makeGuild(guild, client);
+				this.makeGuild(guild);
 			});
 
 			client.addEventListener("MESSAGE_CREATE", (e: ClientEvent) => {
