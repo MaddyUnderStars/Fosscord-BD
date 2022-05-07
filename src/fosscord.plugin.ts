@@ -26,24 +26,56 @@ enum GatewayOpcode {
 const Log = {
 	msg: (...args: any[]) => {
 		console.log("[Fosscord]", ...args);
+		return args;
 	},
 	warn: (...args: any[]) => {
 		console.warn("[Fosscord]", ...args);
+		return args;
 	},
 	error: (...args: any[]) => {
 		console.error("[Fosscord]", ...args);
+		return args;
 	}
 };
 
+interface APIRequest {
+	url: string,
+	body: { [key: string]: any; },
+	retries: number,
+	oldFormErrors?: boolean,
+};
+
+interface APIResponse {
+	body: { [key: string]: any; },
+	headers: { [key: string]: any; },
+	ok: boolean,
+	status: number,
+	text: string,
+}
+
 class HttpClient {
-	static send = (client: Client, method: string, path: string, body: any = undefined) => new Promise((resolve, reject) => {
+	static send = (client: Client, method: string, path: string, body: any = undefined): Promise<APIResponse> => new Promise((resolve, reject) => {
 		const xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = () => {
 			if (xhttp.readyState !== 4) return;
 			if (xhttp.status !== 200) reject(`Could not ${method} ${path}`);
 
+			const headers: { [key: string]: string; } = {};
+			xhttp.getAllResponseHeaders()
+				.split(/[\r\n]+/)
+				.forEach(x => {
+					const parts = x.split(": ");
+					const header = parts.shift();
+					if (!header) return;
+					headers[header] = parts.join(": ");
+				});
+
 			resolve({
 				body: JSON.parse(xhttp.responseText),
+				status: xhttp.status,
+				text: xhttp.responseText,
+				ok: xhttp.status == 200,
+				headers: headers,
 			});
 		};
 		xhttp.open(method, path, true);
@@ -55,7 +87,7 @@ class HttpClient {
 class Collection<T> extends Map<String, T> {
 	// TODO: Might be useful to add methods similar to discord.js's here?
 
-	find = (fn: (value: T, key: String, collection: Collection<T>) => any) => {
+	find = (fn: (value: T, key: String, collection: this) => any) => {
 		for (var [id, value] of this) {
 			if (fn(value, id, this))
 				return this.get(id);
@@ -69,6 +101,7 @@ class ClientEvent extends Event {
 		super(type);
 		this.data = props;
 	}
+
 }
 
 class Client extends EventTarget {
@@ -252,7 +285,7 @@ class FosscordBD implements Plugin {
 	getAuthor = () => "MaddyUnderStars";
 
 	settings?: ClientSettings;
-	clients?: Client[] = [];
+	clients: Client[] = [];
 
 	loadClientSettings = () => {
 		this.settings = {
@@ -261,11 +294,51 @@ class FosscordBD implements Plugin {
 	};
 
 	makeGuild = (guild: Guild) => {
+		const client = this.clients?.find(x => x.guilds?.get(guild.id));
+		const user = client?.user;
+
+		for (var i = 0; i < guild.channels.length; i++) {
+			guild.channels[i] = {
+				...guild.channels[i],
+
+				getGuildId: () => guild.id,
+				isGuildStageVoice: () => false,
+				isPrivate: () => false,
+				isOwner: () => true,
+				toJS: () => guild.channels[i],	//what is this function?
+				isForumChannel: () => false,
+				isForumPost: () => false,
+				isVocal: () => false,
+				isThread: () => false,
+				isDM: () => false,
+				isNSFW: () => false,
+				isGuildVoice: () => false,
+				isDirectory: () => false,
+				isSystemDM: () => false,
+				isMultiUserDM: () => false,
+				getRecipientId: () => null,
+				isArchivedThread: () => false,
+				isCategory: () => false,
+				isManaged: () => false,
+				isGroupDM: () => false,
+			};
+		}
+
+		Log.msg(guild.channels);
+
 		ZLibrary.DiscordModules.Dispatcher.dispatch({
 			type: "GUILD_CREATE", guild: {
 				...guild,
-				channels: [],
-				members: [],
+				// channels: [],
+				members: [{
+					id: user?.id,
+					username: user?.username,
+					avatar: user?.avatar,
+					discriminator: user?.discriminator,
+					bot: user?.bot,
+					user: user,
+					roles: [],
+				}],
 				presences: [],
 				embedded_activities: [],
 				emoji: [],
@@ -372,33 +445,49 @@ class FosscordBD implements Plugin {
 			};
 		});
 
-		ZLibrary.Patcher.instead(
-			"fosscord",
-			ZLibrary.DiscordModules.APIModule,
-			"get",
-			async (thisObject: any, args: any[], original: any) => {
-				const [request] = args;
-				const {
-					url,
-					query,
-					retries,
-					oldFormErrors,
-				} = request;
+		type originalApiMethod = (request: APIRequest) => Promise<APIResponse>;
+		const redirectRequest = async (method: string, request: APIRequest, original: originalApiMethod) => {
+			const {
+				url,
+				body,
+			} = request;
 
-				if (!this.clients || !args || !url) return await original(...args);
+			// this is dumb
+			const IdsInRequest = [
+				...(url || "").split("/").filter(x => !isNaN(parseInt(x))),
+				...Object.values(body || {}).filter(x => !isNaN(parseInt(x))),
+			];
 
-				for (var client of this.clients) {
-					for (var id of client.controlledIds) {
-						if (url.indexOf(id) == -1) continue;
-
-						// dumb solution
-						const apiUrl = "https://" + client.instanceUrl + "/api/v9";
-						return await HttpClient.send(client, "GET", apiUrl + url);
-					}
+			const hasAny = (set: Set<String>, ...args: string[]) => {
+				for (var str of args) {
+					if (set.has(str)) return true;
 				}
+			};
 
-				return await original(...args);
-			});
+			const client = this.clients.find(x => hasAny(x.controlledIds, ...IdsInRequest));
+			if (!client) return await original(request);
+
+			const apiUrl = "https://" + client.instanceUrl + "/api/v9";
+			return await HttpClient.send(client, method, apiUrl + url, body);
+		};
+
+		for (let method of [
+			"get",
+			"post",
+			"patch",
+			"put",
+			"options",
+			"delete",
+		]) {
+			ZLibrary.Patcher.instead(
+				"fosscord",
+				ZLibrary.DiscordModules.APIModule,
+				method,
+				async (thisArg: any, args: any[], original: any) => {
+					return await redirectRequest(method, args[0], original);
+				}
+			);
+		}
 
 		// Start our clients
 		for (var instance of this.settings!.instances) {
@@ -422,26 +511,6 @@ class FosscordBD implements Plugin {
 					type: "MESSAGE_CREATE", channelId: data.channel_id, message: data
 				});
 			});
-
-			// TODO: This doesn't work and I haven't tested why but it sends things slightly differently than above
-			// client.addEventListener("dispatch", (e: ClientEvent) => {
-			// 	const data = e.data as GatewayPayload;
-			// 	if (data.t?.indexOf("_CREATE") == -1) return;
-			// 	if (data.t == "GUILD_CREATE") return;	//we handle this elsewhere
-
-			// 	const test = data.t!.substring(0, data.t!.indexOf("_CREATE")).toLowerCase();
-
-			// 	const test2 = {
-			// 		type: data.t as string,
-			// 		channelId: data.d.channel_id,
-			// 		guildId: data.d.guild_id,
-			// 		messageId: data.d.message_id,
-			// 		[test]: data.d
-			// 	};
-			// 	Log.msg(test2);
-
-			// 	ZLibrary.DiscordModules.Dispatcher.dispatch(test2)
-			// })
 
 			client.start(instance);
 			this.clients!.push(client);

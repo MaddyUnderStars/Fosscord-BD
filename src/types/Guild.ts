@@ -50,4 +50,5 @@ export default interface Guild extends BaseClass {
 	guild_hashes: {};	//what is this?
 	guild_scheduled_events: [];	// TODO: guild events
 	threads: [];	// TODO: threads
+	members: [];
 }

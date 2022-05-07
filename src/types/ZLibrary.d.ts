@@ -18,6 +18,10 @@ declare module ZLibrary {
 		ChannelStore: {
 			getChannels(id: string): any;
 		},
+		
+		GuildStore: {
+			getGuild(id: string): any
+		}
 
 		APIModule: {
 			get(url: string): any,
