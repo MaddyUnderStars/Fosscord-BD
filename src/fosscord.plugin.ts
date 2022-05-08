@@ -38,6 +38,25 @@ const Log = {
 	}
 };
 
+const recursivelyFindIds = (obj: any) => {
+	var ret = [];
+	for (var [key, value] of Object.entries(obj)) {
+		if (value && typeof value === "object")
+			recursivelyFindIds(value);
+
+		if (key.toLowerCase().indexOf("_id") == -1	// bad detection algo lets gooo
+			&& key.toLowerCase().indexOf("id") != key.length - 2)
+			continue;
+		if (!value || value == "null" || value == "undefined") continue;
+		// bad way of checking if it looks like a proper snowflake
+		if (!Number(value)) continue;
+
+		// Log.msg(`Fosscord controls ID ${value}`);
+		ret.push(value as string);
+	}
+	return ret;
+};
+
 interface APIRequest {
 	url: string,
 	body: { [key: string]: any; },
@@ -46,7 +65,7 @@ interface APIRequest {
 };
 
 interface APIResponse {
-	body: { [key: string]: any; },
+	body: { [key: string]: any; } | null,
 	headers: { [key: string]: any; },
 	ok: boolean,
 	status: number,
@@ -70,8 +89,22 @@ class HttpClient {
 					headers[header] = parts.join(": ");
 				});
 
+			var json: { [key: string]: any; } | null = null;
+			try {
+				if (xhttp.responseText) {
+					json = JSON.parse(xhttp.responseText);
+
+					for (let id of recursivelyFindIds(json))
+						client.controlledIds.add(id);
+				}
+			}
+			catch (e) {
+				Log.error(xhttp.responseText, e);
+				return reject(e);
+			}
+
 			resolve({
-				body: JSON.parse(xhttp.responseText),
+				body: json,
 				status: xhttp.status,
 				text: xhttp.responseText,
 				ok: xhttp.status == 200,
@@ -80,7 +113,8 @@ class HttpClient {
 		};
 		xhttp.open(method, path, true);
 		xhttp.setRequestHeader("Authorization", client.instance!.token as string);
-		xhttp.send(body);
+		xhttp.setRequestHeader("Content-Type", "application/json");
+		xhttp.send(JSON.stringify(body));
 	});
 }
 
@@ -129,25 +163,8 @@ class Client extends EventTarget {
 		[GatewayOpcode.Dispatch]: (payload: GatewayPayload) => {
 			this.#sequence = payload.s!;	//Always present for dispatch
 
-			const recursivelyFindIds = (obj: any) => {
-				for (var [key, value] of Object.entries(obj)) {
-					if (value && typeof value === "object")
-						recursivelyFindIds(value);
-
-					if (key.toLowerCase().indexOf("_id") == -1	// bad detection algo lets gooo
-						|| key.toLowerCase().indexOf("id") == key.length - 3)
-						continue;
-					if (this.controlledIds.has(value as string)) continue;
-					if (!value || value == "null" || value == "undefined") continue;
-					// bad way of checking if it looks like a proper snowflake
-					if (!Number(value)) continue;
-
-					Log.msg(`${this.instanceUrl} controls ID ${key}:${value}`);
-					this.controlledIds.add(value as string);
-				}
-			};
-
-			recursivelyFindIds(payload.d);
+			for (let id of recursivelyFindIds(payload.d))
+				this.controlledIds.add(id);
 
 			const handler = this.#dispatchHandlers[payload.t!];
 			if (handler) {
@@ -304,7 +321,7 @@ class FosscordBD implements Plugin {
 				getGuildId: () => guild.id,
 				isGuildStageVoice: () => false,
 				isPrivate: () => false,
-				isOwner: () => true,
+				isOwner: () => false,
 				toJS: () => guild.channels[i],	//what is this function?
 				isForumChannel: () => false,
 				isForumPost: () => false,
@@ -324,12 +341,45 @@ class FosscordBD implements Plugin {
 			};
 		}
 
-		Log.msg(guild.channels);
+		guild = Object.assign({}, {
+			id: "",
+			name: "",
+			description: null,
+			ownerId: null,
+			icon: null,
+			splash: null,
+			banner: null,
+			features: [],
+			preferredLocale: "en-US",
+			roles: {},
+			afkChannelId: null,
+			afkTimeout: null,
+			systemChannelId: null,
+			verificationLevel: null,
+			joinedAt: null,
+			defaultMessageNotifications: "ALL_MESSAGES",
+			mfaLevel: "NONE",
+			application_id: null,
+			explicitContentFilter: "DISABLED",
+			vanityURLCode: null,
+			premiumTier: "NONE",
+			premiumSubscriberCount: 0,
+			premiumProgressBarEnabled: false,
+			systemChannelFlags: null,
+			discoverySplash: null,
+			rulesChannelId: null,
+			publicUpdatesChannelId: null,
+			maxVideoChannelUsers: -1,
+			maxMembers: -1,
+			nsfwLevel: 0,
+			applicationCommandsCounts: {},
+			hubType: null
+		}, guild);
 
 		ZLibrary.DiscordModules.Dispatcher.dispatch({
 			type: "GUILD_CREATE", guild: {
 				...guild,
-				// channels: [],
+				channels: [],
 				members: [{
 					id: user?.id,
 					username: user?.username,
@@ -337,6 +387,7 @@ class FosscordBD implements Plugin {
 					discriminator: user?.discriminator,
 					bot: user?.bot,
 					user: user,
+					permissionOverwrites: ["SEND_MESSAGES"],
 					roles: [],
 				}],
 				presences: [],
@@ -355,25 +406,6 @@ class FosscordBD implements Plugin {
 		ZLibrary.Patcher.instead("fosscord", ZLibrary.DiscordModules.Dispatcher, "dispatch", (thisObject: any, args: any[] | undefined, original: any) => {
 			if (!args) return;
 			const [event] = args;
-
-			/*
-				When a channel is selected, 2 events are fired: CHANNEL_SELECT and UPDATE_CHANNEL_LIST_DIMENSIONS
-
-				CHANNEL_SELECT: {
-					"type": "CHANNEL_SELECT",
-					"guildId": string | null,
-					"channelId": string | null,
-					"messageId": string | null
-				}
-
-				Null is sent for all 3 when going to Home
-
-				UPDATE_CHANNEL_LIST_DIMENSIONS: {
-					"type": "UPDATE_CHANNEL_LIST_DIMENSIONS",
-					"guildId": "",
-					"scrollTop": 0
-				}
-			*/
 
 			const client = this.clients?.find((c: Client) => c.guilds?.get(event.guildId));
 			if (!client) {
@@ -397,6 +429,8 @@ class FosscordBD implements Plugin {
 					});
 				}
 			}
+
+			return original(event);
 		});
 
 
@@ -406,17 +440,57 @@ class FosscordBD implements Plugin {
 			if (!id) return;
 
 			const client = this.clients!.find((c: Client) => c.channels?.get(id));
-			if (!client) return original(id);
+			if (!client)
+				return original(id);
 
-			const channel = client!.channels!.get(id);
+			let channel = client!.channels!.get(id) as Channel;
 			if (!channel) return null;
 			// Log.msg(`Redirected getChannel for ${id} to`, channel);
+
+			channel = Object.assign({}, {
+				type: "GUILD_TEXT",
+				name: "",
+				topic: "",
+				position: 0,
+				guild_id: "",
+				recipients: [],
+				rawRecipients: [],
+				permissionOverwrites: {},
+				bitrate: null,
+				videoQualityMode: null,
+				rtcRegion: null,
+				userLimit: 0,
+				ownerId: null,
+				icon: null,
+				application_id: null,
+				nicks: {},
+				nsfw: false,
+				parent_id: null,
+				memberListId: null,
+				rateLimitPerUser: 0,
+				defaultAutoArchiveDuration: null,
+				flags: 0,
+				originChannelId: null,
+				lastMessageId: null,
+				lastPinTimestamp: null,
+				messageCount: 0,
+				memberCount: 0,
+				memberIdsPreview: [],
+				member: null,
+				threadMetadata: {},
+				availableTags: [],
+				appliedTags: [],
+				parentChannelThreadType: null,
+				template: null,
+			}, channel);
+
 			return {
 				...channel,
 
 				roles: {
 					[channel.id]: {
 						permissions: 4398046511103n,	// Magic number is admin perms. TODO: Is this format expected?
+						requireSendMessages: false,
 					}
 				},
 				rawRecipients: [],
@@ -425,7 +499,7 @@ class FosscordBD implements Plugin {
 				getGuildId: () => channel.guild_id,
 				isGuildStageVoice: () => false,
 				isPrivate: () => false,
-				isOwner: () => true,
+				isOwner: () => false,
 				toJS: () => channel,	//what is this function?
 				isForumChannel: () => false,
 				isForumPost: () => false,
@@ -455,7 +529,7 @@ class FosscordBD implements Plugin {
 			// this is dumb
 			const IdsInRequest = [
 				...(url || "").split("/").filter(x => !isNaN(parseInt(x))),
-				...Object.values(body || {}).filter(x => !isNaN(parseInt(x))),
+				...Object.values(body || {}).filter(x => !isNaN(parseInt(x))).flat(),
 			];
 
 			const hasAny = (set: Set<String>, ...args: string[]) => {
