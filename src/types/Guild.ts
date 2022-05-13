@@ -1,5 +1,6 @@
 import BaseClass from "./BaseClass";
 import Channel from "./Channel";
+import Role from "./Role";
 export default interface Guild extends BaseClass {
 	afk_channel_id: string;
 	afk_timeout: number;
@@ -44,7 +45,7 @@ export default interface Guild extends BaseClass {
 	parent: string | null;	//what is this?
 	channels: Channel[];
 	emojis: [];		// TODO: Emoji class
-	roles: [];		// TODO: roles
+	roles: Role[];		// TODO: roles
 	stickers: [];	// TODO: Stickers
 	joined_at: string;
 	guild_hashes: {};	//what is this?

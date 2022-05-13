@@ -38,11 +38,11 @@ const Log = {
 	}
 };
 
-const recursivelyFindIds = (obj: any) => {
-	var ret = [];
+const recursivelyFindIds = (obj: any): String[] => {
+	var ret: String[] = [];
 	for (var [key, value] of Object.entries(obj)) {
 		if (value && typeof value === "object")
-			recursivelyFindIds(value);
+			ret = ret.concat(recursivelyFindIds(value));
 
 		if (key.toLowerCase().indexOf("_id") == -1	// bad detection algo lets gooo
 			&& key.toLowerCase().indexOf("id") != key.length - 2)
@@ -341,6 +341,11 @@ class FosscordBD implements Plugin {
 			};
 		}
 
+		for (var role of guild.roles) {
+			if (!role.flags)
+				role.flags = "0";
+		}
+
 		guild = Object.assign({}, {
 			id: "",
 			name: "",
@@ -351,7 +356,7 @@ class FosscordBD implements Plugin {
 			banner: null,
 			features: [],
 			preferredLocale: "en-US",
-			roles: {},
+			roles: null,
 			afkChannelId: null,
 			afkTimeout: null,
 			systemChannelId: null,
@@ -387,7 +392,7 @@ class FosscordBD implements Plugin {
 					discriminator: user?.discriminator,
 					bot: user?.bot,
 					user: user,
-					permissionOverwrites: ["SEND_MESSAGES"],
+					permissionOverwrites: [],
 					roles: [],
 				}],
 				presences: [],
@@ -402,6 +407,17 @@ class FosscordBD implements Plugin {
 		ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "LINK_TO_RAW_CODE");
 
 		this.loadClientSettings();
+
+		const permissionsChecker = ZLibrary.WebpackModules.getByProps("getGuildPermissionProps", "can", "getGuildPermissions");
+		ZLibrary.Patcher.instead("fosscord", permissionsChecker, "can", (thisObject: any, args: any[] | undefined, original: any) => {
+			// if (!args) return;
+			// const [permission, obj] = args;
+
+			// const client = this.clients?.find((c: Client) => c.channels?.get(obj.id));
+			// if (!client) return original(...args);
+
+			return true;
+		});
 
 		ZLibrary.Patcher.instead("fosscord", ZLibrary.DiscordModules.Dispatcher, "dispatch", (thisObject: any, args: any[] | undefined, original: any) => {
 			if (!args) return;
@@ -446,6 +462,8 @@ class FosscordBD implements Plugin {
 			let channel = client!.channels!.get(id) as Channel;
 			if (!channel) return null;
 			// Log.msg(`Redirected getChannel for ${id} to`, channel);
+
+			let guild = client!.guilds?.get(channel.guild_id);
 
 			channel = Object.assign({}, {
 				type: "GUILD_TEXT",
