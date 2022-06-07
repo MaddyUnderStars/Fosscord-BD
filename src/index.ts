@@ -71,6 +71,8 @@ export default class FosscordPlugin extends Plugin {
 				});
 			});
 
+			// todo: presence/session, uhh everything else
+
 			this.clients.push(client);
 		}
 
@@ -148,8 +150,9 @@ export default class FosscordPlugin extends Plugin {
 
 				const ids = findIds(event);
 				const client = this.findControllingClient(ids);
-				if (!client)
+				if (!client) {
 					return original(event);
+				}
 
 				switch (event.type) {
 					case "CHANNEL_LOCAL_ACK":
@@ -157,7 +160,8 @@ export default class FosscordPlugin extends Plugin {
 						logger.log(`Preventing ${event.type}, not implemented in server`);
 						return;
 					case "GUILD_SUBSCRIPTIONS_FLUSH":
-						logger.log(`Preventing ${event.type} for ${event.guildId}`, event);
+					case "TRACK":
+						logger.log(`Preventing ${event.type} for ${event.guildId}`);
 						return;
 					case "CHANNEL_SELECT":
 						if (event.channelId) break;
@@ -172,8 +176,9 @@ export default class FosscordPlugin extends Plugin {
 						}
 				}
 
-				// logger.log(`No client dispatch handler implemented for fosscord, event ${event.type}`);
-				return original(event);
+				const ret = original(event);
+				logger.log(`No client dispatch handler implemented for fosscord, event ${event.type}`);
+				return ret;
 			}
 		);
 
@@ -222,7 +227,7 @@ export default class FosscordPlugin extends Plugin {
 
 				return `${client.instance?.cdnUrl}/avatars/${user.id}/${user.avatar}.png?size=${80}`;
 			}
-		)
+		);
 
 		ZLibrary.Patcher.instead(
 			"fosscord",
@@ -238,7 +243,7 @@ export default class FosscordPlugin extends Plugin {
 				// return `${client.instance?.cdnUrl}/guilds/${guildId}/users/${userId}/avatars/${avatar}.png?size={128}`; // TODO: not implemented in server?
 				return `${client.instance?.cdnUrl}/avatars/${userId}/${avatar}.png?size=${80}`;
 			}
-		)
+		);
 
 		// TODO: Doesn't work. It doesn't even get called - none of the banner ones do, actually?
 		ZLibrary.Patcher.instead(
@@ -251,7 +256,7 @@ export default class FosscordPlugin extends Plugin {
 				logger.log(args, ret);
 				return ret;
 			}
-		)
+		);
 
 		/*
 			// this is disgusting
