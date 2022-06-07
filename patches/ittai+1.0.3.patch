@@ -1,0 +1,65 @@
+diff --git a/node_modules/ittai/entities/GMPlugin.js b/node_modules/ittai/entities/GMPlugin.js
+index d4fd09b..eece344 100644
+--- a/node_modules/ittai/entities/GMPlugin.js
++++ b/node_modules/ittai/entities/GMPlugin.js
+@@ -17,7 +17,7 @@ export default class GMPlugin {
+ 			Object.assign(this.__ittaiGMSettings, newSettings);
+ 		},
+ 		setSetting: (key, value) => {
+-			this.__ittaiGMSettings?.[key] = value;
++			this.__ittaiGMSettings[key] = value;
+ 		},
+ 		removeSetting: (key, value) => {
+ 			delete this.__ittaiGMSettings?.[key]
+diff --git a/node_modules/ittai/patcher/patch.js b/node_modules/ittai/patcher/patch.js
+index c64e9e2..4c89678 100644
+--- a/node_modules/ittai/patcher/patch.js
++++ b/node_modules/ittai/patcher/patch.js
+@@ -51,10 +51,14 @@ export default /**
+ 
+ 	if (!patches[id][functionName]) {
+ 		patches[id][functionName] = {
+-			original: { ...object }[functionName],
++			original: object[functionName],
+ 			patches: [],
+ 		};
+ 
++		if (!patches[id][functionName].original) {
++			throw new Error(`original function ${functionName} lost!`)
++		}
++
+ 		const props = { ...object[functionName] };
+ 
+ 		object[functionName] = function (...args) {
+@@ -67,7 +71,7 @@ export default /**
+ 			for (const before of befores) {
+ 				try {
+ 					const callback = before.patchFunction(args, this);
+-					if (callback) args = callback
++					if (callback) args = callback;
+ 				} catch (e) {
+ 					logger.error(`Error running before patch ${name}.`, e);
+ 				}
+@@ -83,10 +87,7 @@ export default /**
+ 				for (const instead of insteads) {
+ 					// Do trash merge with Lodash.
+ 					try {
+-						(res = globalThis._.merge(
+-							res,
+-							instead.patchFunction(args, this) ?? {}
+-						)),
++						(res = instead.patchFunction.call(object, args, functionData.original) ?? res),
+ 							(ranOnce = true);
+ 					} catch (e) {
+ 						logger.error(`Error running instead patch ${name}.`, e);
+@@ -100,8 +101,8 @@ export default /**
+ 			// After patches.
+ 			for (const after of afters) {
+ 				try {
+-					const callback = after.patchFunction(args, res, this)
+-					if (callback) res = callback
++					const callback = after.patchFunction(args, res, this);
++					if (callback) res = callback;
+ 				} catch (e) {
+ 					logger.error(`Error running after patch ${name}.`, e);
+ 				}

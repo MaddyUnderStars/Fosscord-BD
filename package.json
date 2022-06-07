@@ -1,12 +1,21 @@
 {
-	"name": "fosscord-bd",
-	"version": "0.0.1",
-	"scripts": {
-		"build": "tsc",
-		"watch": "tsc --watch"
-	},
 	"dependencies": {
-		"@types/react": "^16.7.18",
-		"@types/react-dom": "^16.0.11"
-	}
+		"@types/react": "^18.0.12",
+		"ittai": "^1.0.3",
+		"patch-package": "^6.4.7"
+	},
+	"name": "testplugin",
+	"version": "1.0.0",
+	"main": "src/index.ts",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "ittai --betterdiscord --distOutput \"./build\"",
+		"watch": "ittai --betterdiscord --distOutput=\"./build\" --watch",
+		"build:windows": "ittai --betterdiscord=\"%appdata%/BetterDiscord/plugins\" --distOutput \"./build\"",
+		"watch:windows": "ittai --watch --distOutput=\"./build\" --betterdiscord=\"%appdata%/BetterDiscord/plugins/\"",
+		"postinstall": "patch-package"
+	},
+	"author": "",
+	"license": "ISC",
+	"description": ""
 }

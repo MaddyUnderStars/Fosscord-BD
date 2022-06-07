@@ -1,0 +1,10 @@
+{
+    "name": "Fosscord",
+    "version": "1.0.0",
+    "license": "AGPLV3",
+    "source": "",
+    "updateUrl": "",
+    "main": "index.js",
+    "author": "MaddyUnderStars",
+    "description": "Allows connections to Fosscord instances"
+}
