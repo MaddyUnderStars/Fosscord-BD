@@ -69,6 +69,9 @@ export class Client extends EventTarget {
 			this.instance.gatewayUrl = response.body!.url;
 		}
 
+		// is there an API method to get this?
+		this.instance.cdnUrl = "https://" + new URL(this.instance.gatewayUrl!).host;
+
 		this.#socket = new WebSocket(this.instance.gatewayUrl!);
 
 		this.#socket.addEventListener("open", (e) => {

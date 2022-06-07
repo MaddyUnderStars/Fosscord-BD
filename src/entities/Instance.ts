@@ -3,5 +3,6 @@ export default interface Instance {
 	password?: string;
 	token?: string;
 	gatewayUrl?: string;
+	cdnUrl?: string;
 	apiUrl?: string;
 }

@@ -10,6 +10,7 @@ import { Channel, makeChannel } from "./entities/Channel";
 import { Dispatcher } from "ittai/webpack";
 import { APIRequest, APIResponse, HttpClient } from "./client/HttpClient";
 import { findIds } from "./util/Snowflake";
+import User from "./entities/User";
 
 export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];
@@ -175,6 +176,99 @@ export default class FosscordPlugin extends Plugin {
 				return original(event);
 			}
 		);
+
+
+		// Image stuff below
+
+		// //@ts-ignore
+		// for (var func in ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default) {
+		// 	ZLibrary.Patcher.instead(
+		// 		"fosscord",
+		// 		//@ts-ignore
+		// 		ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+		// 		func,
+		// 		(thisObject: any, args: any[], original: any) => {
+		// 			let ret: string = original(...args);
+		// 			if (!ret) return ret;
+		// 			const ids = findIds(Object.assign({}, [...args].concat(ret.split("/"))));	// bad lol
+		// 			const client = this.findControllingClient(ids);
+		// 			if (!client) return ret;
+
+		// 			if (ret.indexOf("/guilds/") !== -1) {
+		// 				// Fosscord doesn't yet support guild specific profiles?
+
+		// 				let split = ret.split("/");
+		// 				split.splice(split.indexOf("guilds"), 2);
+		// 				ret = split.join("/");
+		// 			}
+
+		// 			ret = ret.replace("https://cdn.discordapp.com", client.instance?.cdnUrl!);
+
+		// 			logger.log(ret);
+		// 			return ret;
+		// 		}
+		// 	);
+		// }
+
+		ZLibrary.Patcher.instead(
+			"fosscord",
+			//@ts-ignore
+			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+			"getUserAvatarURL",
+			(thisObject: any, args: any[], original: any) => {
+				const user = args[0] as User;
+				const client = this.findControllingClient(user.id);
+				if (!client) return original(...args);
+
+				return `${client.instance?.cdnUrl}/avatars/${user.id}/${user.avatar}.png?size=${80}`;
+			}
+		)
+
+		ZLibrary.Patcher.instead(
+			"fosscord",
+			//@ts-ignore
+			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+			"getGuildMemberAvatarURLSimple",
+			(thisObject: any, args: any[], original: any) => {
+				const { guildId, avatar, userId } = args[0];
+				const client = this.findControllingClient(userId);
+				if (!client) return original(...args);
+
+				// https://cdn.discordapp.com/guilds/566944268703236117/users/280874280504262657/avatars/16b8179b1231d83afb188ca642018cbc.webp?size=128
+				// return `${client.instance?.cdnUrl}/guilds/${guildId}/users/${userId}/avatars/${avatar}.png?size={128}`; // TODO: not implemented in server?
+				return `${client.instance?.cdnUrl}/avatars/${userId}/${avatar}.png?size=${80}`;
+			}
+		)
+
+		// TODO: Doesn't work. It doesn't even get called - none of the banner ones do, actually?
+		ZLibrary.Patcher.instead(
+			"fosscord",
+			//@ts-ignore
+			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+			"getUserBannerURL",
+			(thisObject: any, args: any[], original: any) => {
+				const ret = original(...args);
+				logger.log(args, ret);
+				return ret;
+			}
+		)
+
+		/*
+			// this is disgusting
+			const NativeImage = Image;
+			const getCurrentClients = () => this.clients;	// work around because I can't access the plugin this in proxyimage
+			class ProxyImage extends NativeImage {
+				set src(value: string) {
+					let client = getCurrentClients().find(x => x.controlledIds.any(...value.split("/")));
+
+					if (client) {
+						logger.log(`Replacing image request for 'cdn.discordapp.com' to '${client?.instance?.cdnUrl}'`);
+						value = value.replace("cdn.discordapp.com", client.instance!.cdnUrl!);
+					}
+				}
+			}
+			Image = ProxyImage;
+		*/
 	};
 
 	stop = () => {
