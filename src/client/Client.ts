@@ -69,6 +69,12 @@ export class Client extends EventTarget {
 			this.instance.gatewayUrl = response.body!.url;
 		}
 
+		const parsedGateway = new URL(this.instance.gatewayUrl!);
+		if (parsedGateway.protocol == "ws:") {
+			parsedGateway.protocol = "wss:";
+			this.instance.gatewayUrl = parsedGateway.toString();
+		}
+
 		// is there an API method to get this?
 		this.instance.cdnUrl = "https://" + new URL(this.instance.gatewayUrl!).host;
 
