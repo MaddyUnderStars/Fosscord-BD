@@ -93,6 +93,11 @@ export default class FosscordPlugin extends Plugin {
 				return await original(request);
 			}
 
+			if (url.indexOf("/ack") != -1) {
+				logger.log(`Preventing request to /ack, not implemented in server`);
+				return;
+			}
+
 			return await HttpClient.send(client, method, client.instance?.apiUrl + url, body);
 		};
 
@@ -146,6 +151,7 @@ export default class FosscordPlugin extends Plugin {
 					return original(event);
 
 				switch (event.type) {
+					case "CHANNEL_LOCAL_ACK":
 					case "TYPING_START_LOCAL":
 						logger.log(`Preventing ${event.type}, not implemented in server`);
 						return;
@@ -175,5 +181,7 @@ export default class FosscordPlugin extends Plugin {
 		for (let client of this.clients) {
 			client.stop();
 		}
+
+		ZLibrary.Patcher.unpatchAll("fosscord");
 	};
 }
