@@ -42,10 +42,9 @@ export default class FosscordPlugin extends Plugin {
 
 		for (let instance of settings.get("instances", [])) {
 			let client = new Client();
-			await client.login(instance);
-
+		
 			client.addEventListener("READY", (e: ClientEvent) => {
-				logger.log(`Ready on ${client.instance?.gatewayUrl} as ${client.user?.username}`);
+				client.log(`Ready as ${client.user?.username}`);
 
 				for (var [id, guild] of client.guilds!) {
 					dispatchGuild(guild, client);
@@ -77,6 +76,7 @@ export default class FosscordPlugin extends Plugin {
 
 			// todo: presence/session, uhh everything else
 
+			await client.login(instance);
 			this.clients.push(client);
 		}
 
@@ -101,7 +101,7 @@ export default class FosscordPlugin extends Plugin {
 			}
 
 			if (url.indexOf("/ack") != -1) {
-				logger.log(`Preventing request to /ack, not implemented in server`);
+				client.log(`Preventing request to /ack, not implemented in server`);
 				return;
 			}
 
@@ -161,18 +161,20 @@ export default class FosscordPlugin extends Plugin {
 				switch (event.type) {
 					case "CHANNEL_LOCAL_ACK":
 					case "TYPING_START_LOCAL":
-						logger.log(`Preventing ${event.type}, not implemented in server`);
+						client.log(`Preventing ${event.type}, not implemented in server`);
 						return;
+					case "MESSAGE_CREATE":
+						if (!event.optimistic) break;
 					case "GUILD_SUBSCRIPTIONS_FLUSH":
 					case "TRACK":
-						logger.log(`Preventing ${event.type} for ${event.guildId}`);
+						client.log(`Preventing ${event.type}`);
 						return;
 					case "CHANNEL_SELECT":
 						if (event.channelId) break;
 						const guildId = event.guildId;
 						const guild = client.guilds?.get(guildId);
 						if (guild) {
-							logger.log(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`);
+							client.log(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`);
 							return original({
 								...event,
 								channelId: guild.channels[0].id,
@@ -181,7 +183,7 @@ export default class FosscordPlugin extends Plugin {
 				}
 
 				const ret = original(event);
-				logger.log(`No client dispatch handler implemented for fosscord, event ${event.type}`);
+				client.log(`No client dispatch handler implemented for fosscord, event ${event.type}`, event);
 				return ret;
 			}
 		);
@@ -256,9 +258,7 @@ export default class FosscordPlugin extends Plugin {
 			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 			"getUserBannerURL",
 			(thisObject: any, args: any[], original: any) => {
-				const ret = original(...args);
-				logger.log(args, ret);
-				return ret;
+				return original(...args);;
 			}
 		);
 

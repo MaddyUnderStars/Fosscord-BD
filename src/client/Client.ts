@@ -42,6 +42,7 @@ export class Client extends EventTarget {
 	#socket?: WebSocket;
 	#heartbeat?: number;
 	sequence: number = -1;
+	#reconnectAttempt = 0;
 
 	user?: User;
 	guilds: Collection<Guild> = new Collection<Guild>();
@@ -50,6 +51,19 @@ export class Client extends EventTarget {
 	constructor() {
 		super();
 	}
+
+	#_log = (type: string, ...value: any[]) => {
+		return logger[type](
+			`[ ${
+				this.instance?.info ?
+				this.instance.info.name :
+				new URL(this.instance!.apiUrl!).host} ]`,
+			...value
+		);
+	};
+	log = (...value: any[]) => this.#_log("log", ...value);
+	warn = (...value: any[]) => this.#_log("warn", ...value);
+	error = (...value: any[]) => this.#_log("error", ...value);
 
 	login = async (instance: Instance) => {
 		this.instance = instance;
@@ -69,10 +83,27 @@ export class Client extends EventTarget {
 			this.instance.gatewayUrl = response.body!.url;
 		}
 
+
+		// We can't connect to insecure protocols because we're in a secure context
 		const parsedGateway = new URL(this.instance.gatewayUrl!);
 		if (parsedGateway.protocol == "ws:") {
 			parsedGateway.protocol = "wss:";
 			this.instance.gatewayUrl = parsedGateway.toString();
+		}
+
+		if (this.instance.apiUrl) {
+			// This PR isn't merged on fosscord/fosscord-server but I don't care!
+			// Get instance info from /ping route
+
+			let body;
+			try {
+				body = (await HttpClient.send(this, "GET", `${this.instance.apiUrl}/ping`)).body;
+			}
+			catch (e) {}
+
+			if (body?.instance) {
+				this.instance.info = body.instance;
+			}
 		}
 
 		// is there an API method to get this?
@@ -81,7 +112,9 @@ export class Client extends EventTarget {
 		this.#socket = new WebSocket(this.instance.gatewayUrl!);
 
 		this.#socket.addEventListener("open", (e) => {
-			logger.log(`Connected to gateway at ${this.instance?.gatewayUrl}`);
+			this.log(`Connected to gateway`);
+
+			this.#reconnectAttempt = 0;
 
 			this.#identity();
 		});
@@ -90,8 +123,13 @@ export class Client extends EventTarget {
 
 		this.#socket.addEventListener("close", () => {
 			clearInterval(this.#heartbeat);
-			logger.log(`Disconnected from gateway ( ${this.instance?.gatewayUrl} )`);
+			this.log(`Disconnected from gateway`);
 			this.dispatchEvent(new ClientEvent("close"));
+
+			if (this.#reconnectAttempt > 5) return;
+			this.log(`Attempting reconnection`);
+			this.#reconnectAttempt++;
+			this.login(instance);
 		});
 	};
 
@@ -110,11 +148,11 @@ export class Client extends EventTarget {
 
 		const payload: GatewayPayload = recursiveDelete(JSON.parse(e.data));
 		if (this.sequence < 0)
-			logger.log(`Received from gateway ( ${this.instance?.gatewayUrl} )`, payload.op);
+			this.log(`Received from gateway`, payload.op);
 
 		const handler = OpcodeHandlers[payload.op];
 		if (!handler) {
-			logger.warn(`No handler for opcode ${payload.op}`);
+			this.warn(`No handler for opcode ${payload.op}`);
 			return;
 		}
 
@@ -135,7 +173,7 @@ export class Client extends EventTarget {
 	setHeartbeat = (interval: number) => {
 		if (this.#heartbeat) clearInterval(this.#heartbeat);
 
-		logger.log(`set heartbeat interval to ${interval}`);
+		this.log(`set heartbeat interval to ${interval}`);
 		this.#heartbeat = setInterval(() => {
 			this.#send({
 				op: GatewayOpcode.Heartbeat,
@@ -146,7 +184,7 @@ export class Client extends EventTarget {
 
 	#send = (data: GatewayPayload): void => {
 		if (this.#socket?.readyState !== WebSocket.OPEN) {
-			logger.error(`Attempted to send data to closed socket. OP ${data.op}, S ${data.s}`);
+			this.error(`Attempted to send data to closed socket. OP ${data.op}, S ${data.s}`);
 			return;
 		}
 
@@ -156,5 +194,6 @@ export class Client extends EventTarget {
 	stop = () => {
 		if (this.#socket) this.#socket.close();
 		if (this.#heartbeat) clearInterval(this.#heartbeat);
+		this.#reconnectAttempt = Infinity;
 	};
 }
