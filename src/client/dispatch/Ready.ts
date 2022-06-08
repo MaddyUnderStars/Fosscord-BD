@@ -1,5 +1,6 @@
 import { DispatchHandler } from ".";
 import User from "../../entities/User";
+import DispatchGuild from "../../util/DispatchGuild";
 import { Collection } from "../../util/Structures";
 
 const handler: DispatchHandler = function (payload) {
@@ -16,6 +17,12 @@ const handler: DispatchHandler = function (payload) {
 			this.channels.set(channel.id, channel);
 			this.controlledIds.add(channel.id);
 		}
+	}
+
+	this.log(`Ready as ${this.user?.username}`);
+
+	for (var [id, guild] of this.guilds!) {
+		DispatchGuild(guild, this);
 	}
 };
 

@@ -43,7 +43,6 @@ export class HttpClient {
 				}
 			}
 			catch (e) {
-				console.error(xhttp.responseText, e);
 				return reject(e);
 			}
 

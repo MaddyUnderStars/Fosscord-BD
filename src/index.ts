@@ -26,56 +26,8 @@ export default class FosscordPlugin extends Plugin {
 	start = async () => {
 		this.setSettingsPanel(() => React.createElement(SettingsPage));
 
-		const dispatchGuild = (guild: Guild, client: Client) => {
-			guild = makeGuild(guild, client) as Guild;
-			client.guilds.set(guild.id, guild);
-			Dispatcher.dispatch({
-				type: "GUILD_CREATE", guild: {
-					presences: [],
-					embedded_activities: [],
-					emoji: [],
-
-					...guild,
-				}
-			});
-		};
-
 		for (let instance of settings.get("instances", [])) {
 			let client = new Client();
-		
-			client.addEventListener("READY", (e: ClientEvent) => {
-				client.log(`Ready as ${client.user?.username}`);
-
-				for (var [id, guild] of client.guilds!) {
-					dispatchGuild(guild, client);
-				}
-			});
-
-			client.addEventListener("GUILD_CREATE", (e: ClientEvent) => {
-				dispatchGuild(e.data, client);
-			});
-
-			client.addEventListener("GUILD_DELETE", (e: ClientEvent) => {
-				const id: string = e.data.id;
-				client.guilds?.delete(id);
-				Dispatcher.dispatch({
-					type: "GUILD_DELETE", guild: { id: id },
-				});
-			});
-
-			client.addEventListener("MESSAGE_CREATE", (e: ClientEvent) => {
-				const data = e.data; //as Message;
-
-				const messageInternal = ZLibrary.WebpackModules.getByProps("canEditMessageWithStickers") as any;
-				const message = messageInternal.createMessageRecord(data);
-
-				Dispatcher.dispatch({
-					type: "MESSAGE_CREATE", channelId: data.channel_id, message: message
-				});
-			});
-
-			// todo: presence/session, uhh everything else
-
 			await client.login(instance);
 			this.clients.push(client);
 		}
@@ -258,26 +210,9 @@ export default class FosscordPlugin extends Plugin {
 			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 			"getUserBannerURL",
 			(thisObject: any, args: any[], original: any) => {
-				return original(...args);;
+				return original(...args);
 			}
 		);
-
-		/*
-			// this is disgusting
-			const NativeImage = Image;
-			const getCurrentClients = () => this.clients;	// work around because I can't access the plugin this in proxyimage
-			class ProxyImage extends NativeImage {
-				set src(value: string) {
-					let client = getCurrentClients().find(x => x.controlledIds.any(...value.split("/")));
-
-					if (client) {
-						logger.log(`Replacing image request for 'cdn.discordapp.com' to '${client?.instance?.cdnUrl}'`);
-						value = value.replace("cdn.discordapp.com", client.instance!.cdnUrl!);
-					}
-				}
-			}
-			Image = ProxyImage;
-		*/
 	};
 
 	stop = () => {
