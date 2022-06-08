@@ -74,8 +74,14 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 	);
 };
 
-export default function Settings() {
+const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (props) => {
 	const [instances, setInstances] = useState<Instance[]>(settings.get("instances", []));
+
+	const setInstancesAndSave = (array: Instance[]) => {
+		setInstances(array);
+		settings.set("instances", array);
+		props.onReload(array);
+	};
 
 	return (
 		<div
@@ -94,13 +100,11 @@ export default function Settings() {
 								instance={instance}
 								onClick={(edited) => {
 									instances[index] = edited;
-									setInstances([...instances]);
-									settings.set("instances", instances);
+									setInstancesAndSave([...instances]);
 								}}
 								onDelete={() => {
 									instances.splice(index, 1);
-									setInstances([...instances]);
-									settings.set("instances", instances);
+									setInstancesAndSave([...instances]);
 								}}
 							/>
 						</Collapsible>
@@ -123,11 +127,12 @@ export default function Settings() {
 						showDelete={false}
 						onDelete={() => { }}
 						onClick={(newInstance) => {
-							setInstances([...instances, newInstance]);
-							settings.set("instances", instances);
+							setInstancesAndSave([...instances, newInstance]);
 						}} />
 				</div>
 			</Collapsible>
 		</div>
 	);
-}
+};
+
+export default SettingsPage;

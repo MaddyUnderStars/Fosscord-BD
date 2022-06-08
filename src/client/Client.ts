@@ -54,8 +54,7 @@ export class Client extends EventTarget {
 
 	#_log = (type: string, ...value: any[]) => {
 		return logger[type](
-			`[ ${
-				this.instance?.info ?
+			`[ ${this.instance?.info ?
 				this.instance.info.name :
 				new URL(this.instance!.apiUrl!).host} ]`,
 			...value
@@ -99,7 +98,7 @@ export class Client extends EventTarget {
 			try {
 				body = (await HttpClient.send(this, "GET", `${this.instance.apiUrl}/ping`)).body;
 			}
-			catch (e) {}
+			catch (e) { }
 
 			if (body?.instance) {
 				this.instance.info = body.instance;
@@ -164,8 +163,6 @@ export class Client extends EventTarget {
 			op: GatewayOpcode.Identify,
 			d: {
 				token: this.instance?.token,
-				// capabilities: 125,
-				// compress: false,
 			}
 		});
 	};

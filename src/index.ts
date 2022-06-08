@@ -3,14 +3,12 @@ import * as React from "react";
 import SettingsPage from "./components/Settings";
 import * as settings from "ittai/settings";
 
-import { Client, ClientEvent } from "./client/Client";
-import { logger, patcher, webpack } from "ittai";
-import { Guild, makeGuild } from "./entities/Guild";
-import { Channel, makeChannel } from "./entities/Channel";
-import { Dispatcher } from "ittai/webpack";
+import { Client } from "./client/Client";
+import { makeChannel } from "./entities/Channel";
 import { APIRequest, APIResponse, HttpClient } from "./client/HttpClient";
 import { findIds } from "./util/Snowflake";
 import User from "./entities/User";
+import Instance from "./entities/Instance";
 
 export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];
@@ -23,8 +21,18 @@ export default class FosscordPlugin extends Plugin {
 		return this.clients.find(x => x.controlledIds.any(...id));
 	};
 
+	applySettingsChanges = async (instances: Instance[]) => {
+		for (let curr of instances) {
+			if (this.clients.find(x => x.instance?.apiUrl == curr.apiUrl)) continue;
+
+			let client = new Client();
+			await client.login(curr);
+			this.clients.push(client);
+		}
+	};
+
 	start = async () => {
-		this.setSettingsPanel(() => React.createElement(SettingsPage));
+		this.setSettingsPanel(() => React.createElement(SettingsPage, { onReload: this.applySettingsChanges }));
 
 		for (let instance of settings.get("instances", [])) {
 			let client = new Client();
