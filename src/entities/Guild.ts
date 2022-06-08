@@ -62,29 +62,37 @@ export interface EventGuild {
 }
 
 export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => {
-	const user = client.user!;
+	
+	// using this makes the guild create event stop working?
+	// const guildInternal = ZLibrary.WebpackModules.getByPrototypes("hasCommunityInfoSubheader") as any;
+	// guild = new guildInternal(guild);
 
 	if (guild.channels)
 		for (var i in guild.channels)
 			guild.channels[i] = makeChannel(guild.channels[i], client) as Channel;	// TODO: this type is wrong
 	else guild.channels = [];
 
+	if (!guild.members) {
+		guild.members = [{
+			id: client.user?.id,
+			username: client.user?.username,
+			avatar: client.user?.avatar,
+			discriminator: client.user?.discriminator,
+			bot: client.user?.bot,
+			user: client.user,
+			permissionOverwrites: [],
+			roles: guild.channels.length ? [guild.channels[0].id] : [],
+		}];
+	}
+
+	guild.guild_scheduled_events = [];
+
 	if (guild.roles)
 		for (var i in guild.roles)
 			if (!guild.roles[i].flags)
 				guild.roles[i].flags = "0";
 
-	if (!guild.members) guild.members = [];
-	guild.members.push({
-		id: client.user?.id,
-		username: client.user?.username,
-		avatar: client.user?.avatar,
-		discriminator: client.user?.discriminator,
-		bot: client.user?.bot,
-		user: client.user,
-		permissionOverwrites: [],
-		roles: guild.channels.length ? [guild.channels[0].id] : [],
-	});
+	// return guild;
 
 	return Object.assign({
 		name: "",

@@ -66,8 +66,12 @@ export default class FosscordPlugin extends Plugin {
 
 			client.addEventListener("MESSAGE_CREATE", (e: ClientEvent) => {
 				const data = e.data; //as Message;
+
+				const messageInternal = ZLibrary.WebpackModules.getByProps("canEditMessageWithStickers") as any;
+				const message = messageInternal.createMessageRecord(data);
+
 				Dispatcher.dispatch({
-					type: "MESSAGE_CREATE", channelId: data.channel_id, message: data
+					type: "MESSAGE_CREATE", channelId: data.channel_id, message: message
 				});
 			});
 

@@ -10,6 +10,7 @@ declare module ZLibrary {
 	export var WebpackModules: {
 		getByProps(...args: string[]): void;
 		getByDisplayName(name: string): any;
+		getByPrototypes(...args: string[]): void;
 	};
 
 	export var DiscordModules: {

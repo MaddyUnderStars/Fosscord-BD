@@ -36,50 +36,52 @@ export interface EventChannel {
 }
 
 export const makeChannel = (channel: Partial<Channel>, client: Client): EventChannel => {
-	const makeChannelInternal = ZLibrary.WebpackModules.getByProps("fromServer") as any;
+	const channelInternal = ZLibrary.WebpackModules.getByProps("fromServer") as any;
 	if (!channel.member) channel.members = client.user;
-	channel = makeChannelInternal.call({}, channel);
+	channel = new channelInternal(channel);
 		
 	if (!channel.id) {
 		throw new Error("Can't makeChannel without ID");
 	}
 
+	return channel;
+
 	return Object.assign({
-		id: channel.id!,
-		type: "GUILD_TEXT",
-		name: "",
-		topic: "",
-		position: 0,
-		guild_id: "",
-		recipients: [],
-		rawRecipients: [],
-		permissionOverwrites: {},
-		bitrate: null,
-		videoQualityMode: null,
-		rtcRegion: null,
-		userLimit: 0,
-		ownerId: null,
-		icon: null,
-		application_id: null,
-		nicks: {},
-		nsfw: false,
-		parent_id: null,
-		memberListId: null,
-		rateLimitPerUser: 0,
-		defaultAutoArchiveDuration: null,
-		flags: 0,
-		originChannelId: null,
-		lastMessageId: null,
-		lastPinTimestamp: null,
-		messageCount: 0,
-		memberCount: 0,
-		memberIdsPreview: [],
-		member: client.user,
-		threadMetadata: {},
-		availableTags: [],
-		appliedTags: [],
-		parentChannelThreadType: null,
-		template: null,
+		// id: channel.id!,
+		// type: "GUILD_TEXT",
+		// name: "",
+		// topic: "",
+		// position: 0,
+		// guild_id: "",
+		// recipients: [],
+		// rawRecipients: [],
+		// permissionOverwrites: {},
+		// bitrate: null,
+		// videoQualityMode: null,
+		// rtcRegion: null,
+		// userLimit: 0,
+		// ownerId: null,
+		// icon: null,
+		// application_id: null,
+		// nicks: {},
+		// nsfw: false,
+		// parent_id: null,
+		// memberListId: null,
+		// rateLimitPerUser: 0,
+		// defaultAutoArchiveDuration: null,
+		// flags: 0,
+		// originChannelId: null,
+		// lastMessageId: null,
+		// lastPinTimestamp: null,
+		// messageCount: 0,
+		// memberCount: 0,
+		// memberIdsPreview: [],
+		// member: client.user,
+		// threadMetadata: {},
+		// availableTags: [],
+		// appliedTags: [],
+		// parentChannelThreadType: null,
+		// template: null,
 
 		roles: {
 			[channel.id!]: {
