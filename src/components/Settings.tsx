@@ -1,107 +1,133 @@
 import * as React from "react";
 import { useState } from "react";
-import { Button, Flex, TextInput, Text } from "ittai/components";
+import { Button, Flex, TextInput, Text, Forms } from "ittai/components";
 import * as settings from "ittai/settings";
-import SettingsAPI from "ittai/settings";
 import Instance from "../entities/Instance";
 import { webpack } from "ittai";
 
+import Collapsible from "./Collapsible";
+
 interface InstanceProps {
-	onClick?: (url?: string, token?: string) => any;
-	url?: string;
-	token?: string;
-	placeholder?: string;
+	instance: Instance,
+	onClick: (instance: Instance) => any;
+	onDelete: () => any;
+	resetOnSubmit?: boolean,
+	showDelete?: boolean,
 }
 
-function Instance(props: InstanceProps): JSX.Element {
-	const [url, setUrl] = useState<string | undefined>(props.url);
-	const [token, setToken] = useState<string | undefined>(props.token);
+const InstanceElement: React.FC<InstanceProps> = (props) => {
+	props.showDelete = props.showDelete ?? true;
+	const [instance, setInstance] = useState(props.instance);
 	return (
-		<Flex direction="row" style={{ padding: "20px" }}>
-			<div style={{ width: "100%" }}>
-				<div>
-					<TextInput
-						placeholder={props.placeholder}
-						value={url}
-						onChange={(newValue) => {
-							setUrl(newValue);
-						}}
-					/>
-				</div>
+		<div className="fosscord-settings-instance">
+			<Forms.FormItem
+				title="API URL"
+				style={{ marginTop: "10px" }}
+			>
+				<TextInput
+					value={instance.apiUrl}
+					placeholder="API URL"
+					onChange={(value) => {
+						setInstance({ ...instance, apiUrl: value });
+					}}
+				/>
+			</Forms.FormItem>
 
-				<div>
-					<TextInput
-						placeholder={props.placeholder}
-						value={token}
-						onChange={(newValue) => {
-							setToken(newValue);
-						}}
-					/>
-				</div>
-			</div>
+			<Forms.FormItem
+				title="Token"
+				style={{ marginTop: "10px" }}
+			>
+				<TextInput
+					//@ts-ignore
+					type="password"
+					value={instance.token}
+					placeholder="Token"
+					onChange={(value) => {
+						setInstance({ ...instance, token: value });
+					}}
+				/>
+			</Forms.FormItem>
 
-			<Button
-				style={{ height: "100%" }}
-				onClick={() => {
-					if (props.onClick) props.onClick(url, token);
-				}}>
-				{"Save"}
-			</Button>
-		</Flex>
+			<Flex style={{ marginTop: "10px" }} align={Flex.Align.CENTER} justify={Flex.Justify.END}>
+				<Forms.FormItem>
+					<Button
+						onClick={() => props.onClick(instance)}
+					>
+						{"Save"}
+					</Button>
+				</Forms.FormItem>
+
+				{props.showDelete ? (
+					<Forms.FormItem
+						style={{ marginLeft: "10px" }}
+					>
+						<Button
+							onClick={() => props.onDelete()}
+							color={Button.Colors.RED}
+						>
+							{"Delete"}
+						</Button>
+					</Forms.FormItem>
+				) : (null)}
+			</Flex>
+		</div >
 	);
-}
+};
 
-export default function Settings(): JSX.Element {
+export default function Settings() {
 	const [instances, setInstances] = useState<Instance[]>(settings.get("instances", []));
 
-	const instanceComponents = instances.map(x => {
-		return (
-			<Instance url={new URL(x.apiUrl!).hostname} token={x.token} onClick={(url, token) => {
-				const index = instances.findIndex((e) => e.apiUrl == x.apiUrl);
-
-				if (!url) {
-					instances.splice(index, 1);
-					setInstances(instances);
-					return;
-				}
-
-				const parsed = new URL(url);
-
-				const instance: Instance = {
-					apiUrl: `https://${parsed.hostname}/api/v9`,
-					token: token,
-				};
-
-				instances[index] = instance;
-				setInstances(instances);
-				settings.set("instances", instances);
-			}} />
-		);
-	});
-
 	return (
-		<div>
-			{"Instances:"}
-			{(() => {
-				if (instanceComponents.length) return instanceComponents;
-				return [];
-			})()}
+		<div
+			className="fosscord-settings"
+			style={{ color: "white" }}
+		>
+			<div className="fosscord-settings-instances">
+				{instances.map((instance: Instance, index: number) => {
+					return (
+						<Collapsible
+							title={instance.info ? instance.info.name! : new URL(instance.apiUrl!).hostname}
+							innerStyle={{ padding: "10px" }}
+							style={{ margin: "10px 0 10px 0" }}
+						>
+							<InstanceElement
+								instance={instance}
+								onClick={(edited) => {
+									instances[index] = edited;
+									setInstances([...instances]);
+									settings.set("instances", instances);
+								}}
+								onDelete={() => {
+									instances.splice(index, 1);
+									setInstances([...instances]);
+									settings.set("instances", instances);
+								}}
+							/>
+						</Collapsible>
+					);
+				})}
+			</div>
 
-			<Instance placeholder="New Instance Base URL" onClick={(url, token) => {
-				if (!url || instances.find(x => x.apiUrl == url)) {
-					return;
-				}
+			<div style={{ margin: "10px 0 20px 0" }}>
+				<Forms.FormDivider />
+			</div>
 
-				const parsed = new URL(url);
-
-				const instance: Instance = {
-					apiUrl: `https://${parsed.hostname}/api/v9`,
-					token: token,
-				};
-
-				setInstances(instances.concat([instance]));
-				settings.set("instances", instances);
-			}} />
+			<Collapsible
+				title="New Instance"
+				innerStyle={{ padding: "10px" }}
+			>
+				<div className="fosscord-settings-new-Instance">
+					<InstanceElement
+						instance={{}}
+						resetOnSubmit={true}
+						showDelete={false}
+						onDelete={() => { }}
+						onClick={(newInstance) => {
+							setInstances([...instances, newInstance]);
+							settings.set("instances", instances);
+						}} />
+				</div>
+			</Collapsible>
 		</div>
 	);
 }
