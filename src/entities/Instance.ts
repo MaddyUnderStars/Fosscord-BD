@@ -21,4 +21,5 @@ export default interface Instance {
 	cdnUrl?: string;
 	apiUrl?: string;
 	info?: InstanceGeneralInfo;
+	enabled?: boolean;
 }

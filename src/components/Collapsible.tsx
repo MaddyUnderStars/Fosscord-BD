@@ -7,6 +7,8 @@ interface CollapsibleProps extends React.PropsWithChildren {
 	title: string;
 	style?: any;
 	innerStyle?: any;
+
+	additionalComponentsRight?: JSX.Element;
 }
 
 const Collapsible: React.FC<CollapsibleProps> = (props) => {
@@ -23,13 +25,24 @@ const Collapsible: React.FC<CollapsibleProps> = (props) => {
 				className="fosscord-collapsibleHeader"
 			>
 				<Forms.FormTitle>{props.title}</Forms.FormTitle>
-				<Button
-					onClick={() => setOpened(!opened)}
-					size={Button.Sizes.TINY}
-					look={Button.Looks.OUTLINED}
+
+				<div
+					style={{
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center"
+					}}
 				>
-					{opened ? "X" : ">"}
-				</Button>
+					{props.additionalComponentsRight}
+					<Button
+						onClick={() => setOpened(!opened)}
+						size={Button.Sizes.TINY}
+						look={Button.Looks.OUTLINED}
+						style={{ marginLeft: "10px" }}
+					>
+						{opened ? "X" : ">"}
+					</Button>
+				</div>
 			</div>
 			<div
 				className="fosscord-collapsibleBody"

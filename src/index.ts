@@ -22,12 +22,29 @@ export default class FosscordPlugin extends Plugin {
 		return this.clients.find(x => x.controlledIds.any(...id));
 	};
 
+	// terrible method
 	applySettingsChanges = async (instances: Instance[]) => {
-		for (let curr of instances) {
-			if (this.clients.find(x => x.instance?.apiUrl == curr.apiUrl)) continue;
+		for (let client of this.clients) {
+			let index = instances.findIndex(x => x.apiUrl === client.instance?.apiUrl);
+			if (index == -1 || !instances[index].enabled) {
+				// client has been deleted or disabled
+				client.stop();
+				for (let [id, guild] of client.guilds) {
+					Dispatcher.dispatch({
+						type: "GUILD_DELETE", guild: { id: id },
+					});
+				}
+				this.clients.splice(index, 1);
+				continue;
+			}
+		}
+
+		for (let instance of instances) {
+			if (!instance.enabled) continue;
+			if (this.clients.find(x => x.instance?.apiUrl === instance.apiUrl)) continue;
 
 			let client = new Client();
-			await client.login(curr);
+			await client.login(instance);
 			this.clients.push(client);
 		}
 	};
@@ -36,6 +53,8 @@ export default class FosscordPlugin extends Plugin {
 		this.setSettingsPanel(() => React.createElement(SettingsPage, { onReload: this.applySettingsChanges }));
 
 		for (let instance of settings.get("instances", [])) {
+			if (!instance.enabled) continue;
+
 			let client = new Client();
 			await client.login(instance);
 			this.clients.push(client);

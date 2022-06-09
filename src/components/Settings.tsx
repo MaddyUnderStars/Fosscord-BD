@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { Button, Flex, TextInput, Forms } from "ittai/components";
+import { Button, Flex, TextInput, Forms, Switch } from "ittai/components";
 import * as settings from "ittai/settings";
 import Instance from "../entities/Instance";
 
@@ -87,6 +87,41 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 			className="fosscord-settings"
 			style={{ color: "white" }}
 		>
+			<div className="fosscord-settings-plugin">
+				<Collapsible
+					title="Plugin settings"
+					innerStyle={{ padding: "10px" }}
+				>
+					{"None yet :p"}
+				</Collapsible>
+			</div>
+
+			<div style={{ margin: "10px 0 20px 0" }}>
+				<Forms.FormDivider />
+			</div>
+
+			<div className="fosscord-settings-new-Instance">
+				<Collapsible
+					title="New Instance"
+					innerStyle={{ padding: "10px" }}
+				>
+					<InstanceElement
+						instance={{}}
+						resetOnSubmit={true}
+						showDelete={false}
+						onDelete={() => { }}
+						onClick={(newInstance) => {
+							newInstance.enabled = true;
+							setInstancesAndSave([...instances, newInstance]);
+						}}
+					/>
+				</Collapsible>
+			</div>
+
+			<div style={{ margin: "10px 0 20px 0" }}>
+				<Forms.FormDivider />
+			</div>
+
 			<div className="fosscord-settings-instances">
 				{instances.map((instance: Instance, index: number) => {
 					return (
@@ -94,6 +129,15 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 							title={instance.info ? instance.info.name! : new URL(instance.apiUrl!).hostname}
 							innerStyle={{ padding: "10px" }}
 							style={{ margin: "10px 0 10px 0" }}
+							additionalComponentsRight={
+								<Switch
+									checked={instance.enabled}
+									onChange={(val) => {
+										instances[index].enabled = val;
+										setInstancesAndSave([...instances]);
+									}}
+								/>
+							}
 						>
 							<InstanceElement
 								instance={instance}
@@ -110,26 +154,6 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 					);
 				})}
 			</div>
-
-			<div style={{ margin: "10px 0 20px 0" }}>
-				<Forms.FormDivider />
-			</div>
-
-			<Collapsible
-				title="New Instance"
-				innerStyle={{ padding: "10px" }}
-			>
-				<div className="fosscord-settings-new-Instance">
-					<InstanceElement
-						instance={{}}
-						resetOnSubmit={true}
-						showDelete={false}
-						onDelete={() => { }}
-						onClick={(newInstance) => {
-							setInstancesAndSave([...instances, newInstance]);
-						}} />
-				</div>
-			</Collapsible>
 		</div>
 	);
 };
