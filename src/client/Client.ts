@@ -54,6 +54,7 @@ export class Client extends EventTarget {
 	}
 
 	#_log = (type: string, ...value: any[]) => {
+		//@ts-ignore
 		return logger[type](
 			`[ ${this.instance?.info ?
 				this.instance.info.name :

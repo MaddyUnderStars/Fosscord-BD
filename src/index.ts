@@ -115,7 +115,7 @@ export default class FosscordPlugin extends Plugin {
 				if (!args) return;
 				const [event] = args;
 
-				// pass through events
+				// pass through events TODO: remove because this was a stupid idea
 				switch (event.type) {
 					case "WINDOW_FOCUS":
 					case "SELF_PRESENCE_STORE_UPDATE":
@@ -137,6 +137,11 @@ export default class FosscordPlugin extends Plugin {
 					case "TYPING_STOP_LOCAL":
 					case "LOAD_MESSAGES":
 					case "LOAD_MESSAGES_SUCCESS":
+					case "DELETE_PENDING_REPLY":
+					case "CLEAR_STICKER_PREVIEW":
+					case "POGGERMODE_UPDATE_COMBO":
+					case "STICKER_PACKS_FETCH_START":
+					case "STICKER_PACKS_FETCH_SUCCESS":
 						return original(event);
 				}
 
@@ -157,8 +162,6 @@ export default class FosscordPlugin extends Plugin {
 					case "TYPING_START_LOCAL":
 						client.log(`Preventing ${event.type}, not implemented in server`);
 						return;
-					case "MESSAGE_CREATE":
-						if (!event.optimistic) break;
 					case "GUILD_SUBSCRIPTIONS_FLUSH":
 					case "TRACK":
 						client.log(`Preventing ${event.type}`);
@@ -179,6 +182,10 @@ export default class FosscordPlugin extends Plugin {
 							event.guildMember = event.user;
 						}
 						return original(event);
+					case "MESSAGE_CREATE":
+						if (!event.optimistic) break;
+						event.message.author = client.user;
+						return original(event);
 				}
 
 				const ret = original(event);
@@ -187,111 +194,28 @@ export default class FosscordPlugin extends Plugin {
 			}
 		);
 
-
-		// Image stuff below
-
-		// //@ts-ignore
-		// for (var func in ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default) {
-		// 	ZLibrary.Patcher.instead(
-		// 		"fosscord",
-		// 		//@ts-ignore
-		// 		ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
-		// 		func,
-		// 		(thisObject: any, args: any[], original: any) => {
-		// 			let ret: string = original(...args);
-		// 			if (!ret) return ret;
-		// 			const ids = findIds(Object.assign({}, [...args].concat(ret.split("/"))));	// bad lol
-		// 			const client = this.findControllingClient(ids);
-		// 			if (!client) return ret;
-
-		// 			if (ret.indexOf("/guilds/") !== -1) {
-		// 				// Fosscord doesn't yet support guild specific profiles?
-
-		// 				let split = ret.split("/");
-		// 				split.splice(split.indexOf("guilds"), 2);
-		// 				ret = split.join("/");
-		// 			}
-
-		// 			ret = ret.replace("https://cdn.discordapp.com", client.instance?.cdnUrl!);
-
-		// 			logger.log(ret);
-		// 			return ret;
-		// 		}
-		// 	);
-		// }
-
-		ZLibrary.Patcher.instead(
-			"fosscord",
-			//@ts-ignore
-			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+		for (let method of [
 			"getUserAvatarURL",
-			(thisObject: any, args: any[], original: any) => {
-				const user = args[0] as User;
-				if (!user.avatar) return original(...args);
-				const client = this.findControllingClient(user.id);
-				if (!client) return original(...args);
-
-				return `${client.instance?.cdnUrl}/avatars/${user.id}/${user.avatar}.png?size=${80}`;
-			}
-		);
-
-		ZLibrary.Patcher.instead(
-			"fosscord",
-			//@ts-ignore
-			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 			"getGuildMemberAvatarURLSimple",
-			(thisObject: any, args: any[], original: any) => {
-				const { guildId, avatar, userId } = args[0];
-				if (!avatar) return original(...args);
-				const client = this.findControllingClient(userId);
-				if (!client) return original(...args);
-
-				// https://cdn.discordapp.com/guilds/566944268703236117/users/280874280504262657/avatars/16b8179b1231d83afb188ca642018cbc.webp?size=128
-				// return `${client.instance?.cdnUrl}/guilds/${guildId}/users/${userId}/avatars/${avatar}.png?size={128}`; // TODO: not implemented in server?
-				return `${client.instance?.cdnUrl}/avatars/${userId}/${avatar}.png?size=${80}`;
-			}
-		);
-
-		ZLibrary.Patcher.instead(
-			"fosscord",
-			//@ts-ignore
-			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 			"getGuildIconURL",
-			(thisObject: any, args: any[], original: any) => {
-				const { id, icon, size } = args[0];
-				if (!icon) return original(...args);
-				const client = this.findControllingClient(id);
-				if (!client) return original(...args);
-				return `${client.instance?.cdnUrl}/icons/${id}/${icon}`;
-			}
-		);
-
-		ZLibrary.Patcher.instead(
-			"fosscord",
-			//@ts-ignore
-			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 			"getEmojiURL",
-			(thisObject: any, args: any[], original: any) => {
-				const { id, size } = args[0];
-				const client = this.findControllingClient(id);
-				if (!client) return original(...args);
-				return `${client.instance?.cdnUrl}/emojis/${id}?size=${size}`;
-			}
-		);
-
-		ZLibrary.Patcher.instead(
-			"fosscord",
-			//@ts-ignore
-			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 			"getGuildBannerURL",
-			(thisObject: any, args: any[], original: any) => {
-				const { id, banner } = args[0];
-				if (!banner) return original(...args);
-				const client = this.findControllingClient(id);
-				if (!client) return original(...args);
-				return `${client.instance?.cdnUrl}/banners/${id}/${banner}`;
-			}
-		);
+		]) {
+			ZLibrary.Patcher.instead(
+				"fosscord",
+				//@ts-ignore
+				ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+				method,
+				(thisObject: any, args: any[], original: any) => {
+					const data = args[0];
+					const client = this.findControllingClient(findIds(data));
+					const originalRet = original(...args);
+					if (!client || !originalRet) return originalRet;
+
+					return originalRet.replace("https://cdn.discordapp.com", client.instance?.cdnUrl);
+				}
+			);
+		}
 
 		ZLibrary.Patcher.instead(
 			"fosscord",
