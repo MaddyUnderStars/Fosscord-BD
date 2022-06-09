@@ -312,9 +312,10 @@ export default class FosscordPlugin extends Plugin {
 			ZLibrary.WebpackModules.getByProps("track", "setSystemAccessibilityFeatures"),
 			"track",
 			(thisObject: any, args: any[], original: any) => {
-				let client = this.findControllingClient(window.location.href.split("/"));
-				if (!client) return original(...args);
-				client.log("Blocking track");
+				// let client = this.findControllingClient(window.location.href.split("/"));
+				// if (!client) return original(...args);
+				// client.log("Blocking track");
+				return;
 			}
 		);
 	};
