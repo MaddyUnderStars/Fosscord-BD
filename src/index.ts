@@ -15,7 +15,7 @@ export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];
 
 	findControllingClient = (id: string[] | string) => {
-		if (typeof id === "string") {
+		if (!Array.isArray(id)) {
 			id = [id];
 		}
 
@@ -120,6 +120,7 @@ export default class FosscordPlugin extends Plugin {
 					case "WINDOW_FOCUS":
 					case "SELF_PRESENCE_STORE_UPDATE":
 					case "EXPERIMENT_TRIGGER":
+					case "GUILD_DELETE":
 						return original(event);
 				}
 
@@ -272,7 +273,20 @@ export default class FosscordPlugin extends Plugin {
 				if (!banner) return original(...args);
 				const client = this.findControllingClient(id);
 				if (!client) return original(...args);
-				return `${client.instance?.cdnUrl}/banners/${id}/${banner}`
+				return `${client.instance?.cdnUrl}/banners/${id}/${banner}`;
+			}
+		);
+
+		ZLibrary.Patcher.instead(
+			"fosscord",
+			ZLibrary.WebpackModules.getByProps("getUserBannerURLForContext"),
+			"getUserBannerURLForContext",
+			(thisObject: any, args: any[], original: any) => {
+				const { user, guildMember, size } = args[0];
+				const client = this.findControllingClient(findIds(user));
+				if (!client) return original(...args);
+
+				return `${client.instance?.cdnUrl}/banners/${user.id}/${user.banner}?size=${size}`;
 			}
 		);
 
