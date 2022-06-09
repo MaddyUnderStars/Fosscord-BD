@@ -1,9 +1,8 @@
 import * as React from "react";
 import { useState } from "react";
-import { Button, Flex, TextInput, Text, Forms } from "ittai/components";
+import { Button, Flex, TextInput, Forms } from "ittai/components";
 import * as settings from "ittai/settings";
 import Instance from "../entities/Instance";
-import { webpack } from "ittai";
 
 import Collapsible from "./Collapsible";
 

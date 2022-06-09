@@ -9,6 +9,7 @@ import { APIRequest, APIResponse, HttpClient } from "./client/HttpClient";
 import { findIds } from "./util/Snowflake";
 import User from "./entities/User";
 import Instance from "./entities/Instance";
+import { Dispatcher } from "ittai/webpack";
 
 export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];
@@ -47,12 +48,14 @@ export default class FosscordPlugin extends Plugin {
 			const {
 				url,
 				body,
-			} = typeof request == "string" ? { url: request, body: undefined } : request;
+				query,
+			} = typeof request == "string" ? { url: request, body: undefined, query: undefined } : request;
 
 			// this is dumb
 			const IdsInRequest = [
 				...(url || "").split("/").filter(x => !isNaN(parseInt(x))),
 				...Object.values(body || {}).filter(x => !isNaN(parseInt(x))).flat(),
+				...Object.values(query || {}).filter(x => !isNaN(parseInt(x))).flat(),
 			];
 
 			const client = this.findControllingClient(IdsInRequest);
@@ -65,7 +68,7 @@ export default class FosscordPlugin extends Plugin {
 				return;
 			}
 
-			return await HttpClient.send(client, method, client.instance?.apiUrl + url, body);
+			return await HttpClient.send(client, method, client.instance?.apiUrl + url, body, query);
 		};
 
 		for (let method of [
@@ -112,8 +115,22 @@ export default class FosscordPlugin extends Plugin {
 				if (!args) return;
 				const [event] = args;
 
-				const ids = findIds(event);
-				const client = this.findControllingClient(ids);
+				// pass through events
+				switch (event.type) {
+					case "WINDOW_FOCUS":
+					case "SELF_PRESENCE_STORE_UPDATE":
+					case "EXPERIMENT_TRIGGER":
+						return original(event);
+				}
+
+				// faster than recursively scanning event obj
+				let client = this.findControllingClient(window.location.href.split("/"));
+				if (!client) {
+					// if we couldn't find a client that way try the slower method
+					const ids = findIds(event);
+					client = this.findControllingClient(ids);
+				}
+
 				if (!client) {
 					return original(event);
 				}
@@ -140,6 +157,11 @@ export default class FosscordPlugin extends Plugin {
 								channelId: guild.channels[0].id,
 							});
 						}
+					case "GUILD_MEMBER_PROFILE_UPDATE":
+						if (!event.guildMember && event.user) {
+							event.guildMember = event.user;
+						}
+						return original(event);
 				}
 
 				const ret = original(event);
@@ -188,6 +210,7 @@ export default class FosscordPlugin extends Plugin {
 			"getUserAvatarURL",
 			(thisObject: any, args: any[], original: any) => {
 				const user = args[0] as User;
+				if (!user.avatar) return original(...args);
 				const client = this.findControllingClient(user.id);
 				if (!client) return original(...args);
 
@@ -202,6 +225,7 @@ export default class FosscordPlugin extends Plugin {
 			"getGuildMemberAvatarURLSimple",
 			(thisObject: any, args: any[], original: any) => {
 				const { guildId, avatar, userId } = args[0];
+				if (!avatar) return original(...args);
 				const client = this.findControllingClient(userId);
 				if (!client) return original(...args);
 
@@ -211,23 +235,57 @@ export default class FosscordPlugin extends Plugin {
 			}
 		);
 
-		// TODO: Doesn't work. It doesn't even get called - none of the banner ones do, actually?
 		ZLibrary.Patcher.instead(
 			"fosscord",
 			//@ts-ignore
 			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
-			"getUserBannerURL",
+			"getGuildIconURL",
 			(thisObject: any, args: any[], original: any) => {
-				return original(...args);
+				const { id, icon, size } = args[0];
+				if (!icon) return original(...args);
+				const client = this.findControllingClient(id);
+				if (!client) return original(...args);
+				return `${client.instance?.cdnUrl}/icons/${id}/${icon}`;
 			}
 		);
+
+		ZLibrary.Patcher.instead(
+			"fosscord",
+			//@ts-ignore
+			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+			"getEmojiURL",
+			(thisObject: any, args: any[], original: any) => {
+				const { id, size } = args[0];
+				const client = this.findControllingClient(id);
+				if (!client) return original(...args);
+				return `${client.instance?.cdnUrl}/emojis/${id}?size=${size}`;
+			}
+		);
+
+		// Anti tracking stuff
+		ZLibrary.Patcher.instead(
+			"fosscord", 
+			ZLibrary.WebpackModules.getByProps("track", "setSystemAccessibilityFeatures"),
+			"track",
+			(thisObject: any, args: any[], original: any) => {
+				let client = this.findControllingClient(window.location.href.split("/"));
+				if (!client) return original(...args);
+				client.log("Blocking track");
+			}
+		)
 	};
 
 	stop = () => {
+		ZLibrary.Patcher.unpatchAll("fosscord");
+
 		for (let client of this.clients) {
 			client.stop();
-		}
 
-		ZLibrary.Patcher.unpatchAll("fosscord");
+			for (let [id, guild] of client.guilds) {
+				Dispatcher.dispatch({
+					type: "GUILD_DELETE", guild: { id: id },
+				});
+			}
+		}
 	};
 }

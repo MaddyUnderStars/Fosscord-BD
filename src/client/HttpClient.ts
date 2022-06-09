@@ -1,9 +1,11 @@
+import recursiveDelete from "../util/RecursivelyDelete";
 import { findIds } from "../util/Snowflake";
-import { Client } from "./Client"
+import { Client } from "./Client";
 
 export interface APIRequest {
 	url: string,
 	body: { [key: string]: any; },
+	query: { [key: string]: any; },
 	retries: number,
 	oldFormErrors?: boolean,
 };
@@ -17,7 +19,7 @@ export interface APIResponse {
 }
 
 export class HttpClient {
-	static send = (client: Client, method: string, path: string, body: any = undefined): Promise<APIResponse> => new Promise((resolve, reject) => {
+	static send = (client: Client, method: string, path: string, body: any = undefined, query: any = undefined): Promise<APIResponse> => new Promise((resolve, reject) => {
 		const xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = () => {
 			if (xhttp.readyState !== 4) return;
@@ -54,6 +56,12 @@ export class HttpClient {
 				headers: headers,
 			});
 		};
+
+		if (query) {
+			query = recursiveDelete(query); // can't have undef methods in here
+			path += "?" + new URLSearchParams(query).toString();
+		}
+
 		xhttp.open(method, path, true);
 		xhttp.setRequestHeader("Authorization", client.instance!.token as string);
 		xhttp.setRequestHeader("Content-Type", "application/json");

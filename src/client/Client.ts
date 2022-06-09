@@ -3,6 +3,7 @@ import { Channel } from "../entities/Channel";
 import { Guild } from "../entities/Guild";
 import Instance from "../entities/Instance";
 import User from "../entities/User";
+import recursiveDelete from "../util/RecursivelyDelete";
 import { Collection, ExtendedSet } from "../util/Structures";
 import { HttpClient } from "./HttpClient";
 import OpcodeHandlers from "./opcodes";
@@ -133,18 +134,6 @@ export class Client extends EventTarget {
 	};
 
 	#handleGatewayMessage = (e: MessageEvent) => {
-		// Fosscord often sends null/undefined values which the client doesn't enjoy
-		const recursiveDelete = (obj: any) => {
-			for (let key in obj) {
-				if (obj[key] && typeof obj[key] === "object")
-					obj[key] = recursiveDelete(obj[key]);
-
-				if (obj[key] == null) delete obj[key];
-			}
-
-			return obj;
-		};
-
 		const payload: GatewayPayload = recursiveDelete(JSON.parse(e.data));
 		if (this.sequence < 0)
 			this.log(`Received from gateway`, payload.op);
