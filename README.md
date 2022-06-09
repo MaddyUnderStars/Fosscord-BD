@@ -17,12 +17,13 @@ On Windows, you can alternatively use `build:windows` to build and install to yo
 * ~~Allow users to navigate to these guilds~~ Done
 * ~~Render messages from guilds~~ Done
 * ~~Patch Discord API to send requests to fosscord for IDs we control~~ Half done?
-* * ~~Render channels in guilds~~ Done!
+*   * I need a method of determining which IDs Fosscord controls. Currently I just add them to a list of controlled IDs, but it's not guaranteed that I'll receive every ID I need to use from the server first. Is this a contrived issue?
+* ~~Render channels in guilds~~ Done!
+* ~~Find a way to get images to load properly~~ Done, mostly!
+* * ~~Fix the Settings screen~~ Mostly done!
+* * Bug: deleting a instance breaks the ordering
 * ~~Allow message sending~~ Half done! It breaks after the first message :(
-  * I need a method of determining which IDs Fosscord controls. Currently I just add them to a list of controlled IDs, but it's not guaranteed that I'll receive every ID I need to use from the server first. Is this a contrived issue?
 * Make a PR to Ittai that fixes patching so I don't need to use Zere's library.
-* Fix the Settings screen 
 * Handle more dispatch events
-* Find a way to get images to load properly
 * The move to Ittai broke DMs?
 * Much more!

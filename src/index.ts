@@ -121,6 +121,22 @@ export default class FosscordPlugin extends Plugin {
 					case "SELF_PRESENCE_STORE_UPDATE":
 					case "EXPERIMENT_TRIGGER":
 					case "GUILD_DELETE":
+					case "UPDATE_CHANNEL_DIMENSIONS":
+					case "USER_PROFILE_MODAL_OPEN":
+					case "USER_PROFILE_FETCH_START":
+					case "USER_PROFILE_FETCH_SUCCESS":
+					case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
+					case "GUILD_SUBSCRIPTIONS_MEMBERS_ADD":
+					case "NOW_PLAYING_UNMOUNTED":
+					case "ENABLE_AUTOMATIC_ACK":
+					case "DISABLE_AUTOMATIC_ACK":
+					case "CHANNEL_PRELOAD":
+					case "UPDATE_CHANNEL_LIST_DIMENSIONS":
+					case "DRAFT_SAVE":
+					case "DRAFT_CHANGE":
+					case "TYPING_STOP_LOCAL":
+					case "LOAD_MESSAGES":
+					case "LOAD_MESSAGES_SUCCESS":
 						return original(event);
 				}
 
@@ -148,7 +164,7 @@ export default class FosscordPlugin extends Plugin {
 						client.log(`Preventing ${event.type}`);
 						return;
 					case "CHANNEL_SELECT":
-						if (event.channelId) break;
+						if (event.channelId) return original(event);
 						const guildId = event.guildId;
 						const guild = client.guilds?.get(guildId);
 						if (guild) {
