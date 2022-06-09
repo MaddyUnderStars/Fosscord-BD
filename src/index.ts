@@ -262,9 +262,23 @@ export default class FosscordPlugin extends Plugin {
 			}
 		);
 
+		ZLibrary.Patcher.instead(
+			"fosscord",
+			//@ts-ignore
+			ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+			"getGuildBannerURL",
+			(thisObject: any, args: any[], original: any) => {
+				const { id, banner } = args[0];
+				if (!banner) return original(...args);
+				const client = this.findControllingClient(id);
+				if (!client) return original(...args);
+				return `${client.instance?.cdnUrl}/banners/${id}/${banner}`
+			}
+		);
+
 		// Anti tracking stuff
 		ZLibrary.Patcher.instead(
-			"fosscord", 
+			"fosscord",
 			ZLibrary.WebpackModules.getByProps("track", "setSystemAccessibilityFeatures"),
 			"track",
 			(thisObject: any, args: any[], original: any) => {
@@ -272,12 +286,10 @@ export default class FosscordPlugin extends Plugin {
 				if (!client) return original(...args);
 				client.log("Blocking track");
 			}
-		)
+		);
 	};
 
 	stop = () => {
-		ZLibrary.Patcher.unpatchAll("fosscord");
-
 		for (let client of this.clients) {
 			client.stop();
 
@@ -287,5 +299,7 @@ export default class FosscordPlugin extends Plugin {
 				});
 			}
 		}
+
+		ZLibrary.Patcher.unpatchAll("fosscord");
 	};
 }
