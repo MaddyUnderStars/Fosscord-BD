@@ -228,8 +228,19 @@ export default class FosscordPlugin extends Plugin {
 				(thisObject: any, args: any[], original: any) => {
 					const data = args[0];
 					const client = this.findControllingClient(findIds(data));
-					const originalRet = original(...args);
+					let originalRet = original(...args);
 					if (!client || !originalRet) return originalRet;
+
+					if (originalRet.indexOf("/guilds/") != -1) {
+						// fosscord doesn't yet support this
+						const parsed = new URL(originalRet);
+						const split = parsed.pathname.split("/");
+						const userId = split[4];
+						const avatar = split[6];
+						parsed.pathname = `/avatars/${userId}/${avatar}`;
+						originalRet = parsed.toString();
+						client.log(originalRet);
+					}
 
 					return originalRet.replace("https://cdn.discordapp.com", client.instance?.cdnUrl);
 				}
