@@ -1,15 +1,16 @@
 import { Plugin } from "ittai/entities";
-import * as React from "react";
+// import * as React from "react";
 import SettingsPage from "./components/Settings";
 import * as settings from "ittai/settings";
 
 import { Client } from "./client/Client";
-import { makeChannel } from "./entities/Channel";
 import { APIRequest, APIResponse, HttpClient } from "./client/HttpClient";
 import { findIds } from "./util/Snowflake";
 import Instance from "./entities/Instance";
 import { Dispatcher } from "ittai/webpack";
 import { makeUser } from "./entities/User";
+
+import { React } from "ittai/webpack"
 
 export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];

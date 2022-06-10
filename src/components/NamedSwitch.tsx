@@ -1,4 +1,5 @@
-import * as React from "react";
+import { React } from "ittai/webpack"
+// import * as React from "react";
 import { Switch, SwitchProps } from "ittai/components";
 
 interface NamedSwitchProps extends SwitchProps {

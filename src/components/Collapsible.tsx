@@ -1,10 +1,12 @@
-import * as React from "react";
-import { useState } from "react";
+import { React } from "ittai/webpack"
+// import * as React from "react";
+// import { useState } from "react";
+const { useState } = React;
 import { Button, Forms } from "ittai/components";
 
 import "./styles/Collapsible.css"
 
-interface CollapsibleProps extends React.PropsWithChildren {
+interface CollapsibleProps {
 	open?: boolean,
 	title: string;
 	style?: any;
@@ -13,7 +15,7 @@ interface CollapsibleProps extends React.PropsWithChildren {
 	additionalComponentsRight?: JSX.Element;
 }
 
-const Collapsible: React.FC<CollapsibleProps> = (props) => {
+const Collapsible: React.FC<React.PropsWithChildren<CollapsibleProps>> = (props) => {
 	const [opened, setOpened] = useState(props.open);
 
 	return (
