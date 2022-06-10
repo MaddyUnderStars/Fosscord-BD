@@ -196,8 +196,9 @@ export default class FosscordPlugin extends Plugin {
 							});
 						}
 					case "GUILD_MEMBER_PROFILE_UPDATE":
-						if (!event.guildMember && event.user) {
-							event.guildMember = event.user;
+						if (!event.guildMember || !event.guildMember.user || !event.guildMember.id) {
+							if (event.guildMember && event.user) event.guildMember.user = event.user;
+							else return;
 						}
 						return original(event);
 					case "MESSAGE_CREATE":
@@ -238,7 +239,6 @@ export default class FosscordPlugin extends Plugin {
 						const avatar = split[6];
 						parsed.pathname = `/avatars/${userId}/${avatar}`;
 						originalRet = parsed.toString();
-						client.log(originalRet);
 					}
 
 					return originalRet.replace("https://cdn.discordapp.com", client.instance?.cdnUrl);
