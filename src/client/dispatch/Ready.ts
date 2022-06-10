@@ -1,10 +1,10 @@
 import { DispatchHandler } from ".";
-import User from "../../entities/User";
+import User, { makeUser } from "../../entities/User";
 import DispatchGuild from "../../util/DispatchGuild";
 import { Collection } from "../../util/Structures";
 
 const handler: DispatchHandler = function (payload) {
-	this.user = payload.d.user as User;
+	this.user = makeUser(payload.d.user, this) as User;
 	this.guilds = new Collection();
 	for (let guild of payload.d.guilds) {
 		this.guilds.set(guild.id, guild);

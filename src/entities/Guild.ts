@@ -2,6 +2,7 @@ import { Client } from "../client/Client";
 import BaseClass from "./BaseClass";
 import { Channel, makeChannel } from "./Channel";
 import Role from "./Role";
+import { makeUser } from "./User";
 
 export interface Guild extends BaseClass {
 	topic: string,
@@ -81,8 +82,12 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 			bot: client.user?.bot,
 			user: client.user,
 			permissionOverwrites: [],
-			roles: guild.channels.length ? [guild.channels[0].id] : [],
+			roles: guild.channels.length ? [guild.id] : [],
 		}];
+	}
+	else {
+		for (var i in guild.members)
+			guild.members[i] = makeUser(guild.members[i], client);
 	}
 
 	guild.guild_scheduled_events = [];
@@ -105,6 +110,7 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 		features: [],
 		preferredLocale: "en-US",
 		roles: [],
+		members: [],
 		afkChannelId: null,
 		afkTimeout: null,
 		systemChannelId: null,

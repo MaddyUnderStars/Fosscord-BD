@@ -1,3 +1,4 @@
+import { Client } from "../client/Client";
 import BaseClass from "./BaseClass";
 
 export default interface User extends BaseClass {
@@ -19,3 +20,8 @@ export default interface User extends BaseClass {
 	bio: string;
 	premium_since: string;
 }
+
+export const makeUser = (user: Partial<User>, client: Client) => {
+	const userInternal = ZLibrary.WebpackModules.getByPrototypes("addGuildAvatarHash") as any;
+	return new userInternal(user);
+};

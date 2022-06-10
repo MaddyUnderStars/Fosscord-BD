@@ -1,4 +1,3 @@
-import { logger } from "ittai";
 import { Client } from "../client/Client";
 import BaseClass from "./BaseClass";
 
