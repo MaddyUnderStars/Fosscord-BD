@@ -1,0 +1,10 @@
+.fosscord-dropdown-container {
+	background-color: rgba(0, 0, 0, 0);
+	color: var(--button-outline-brand-text);
+	border-color: var(--button-outline-brand-border);
+	height: 24px;
+}
+
+.fosscord-dropdown-option {
+	background-color: var(--background-tertiary);
+}

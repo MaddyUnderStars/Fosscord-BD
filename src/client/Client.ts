@@ -1,4 +1,4 @@
-import { logger } from "ittai";
+import { logger, settings } from "ittai";
 import { Channel } from "../entities/Channel";
 import { Guild } from "../entities/Guild";
 import Instance from "../entities/Instance";
@@ -54,6 +54,17 @@ export class Client extends EventTarget {
 	}
 
 	#_log = (type: string, ...value: any[]) => {
+		const levels = [
+			"log",
+			"warn",
+			"error",
+		];
+
+		const enabledLevel = settings.get("loggingLevel", "error");
+		if (enabledLevel == "none" ||
+			levels.indexOf(type) < levels.indexOf(enabledLevel))
+			return;
+
 		//@ts-ignore
 		return logger[type](
 			`[ ${this.instance?.info ?
