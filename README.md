@@ -20,9 +20,9 @@ On Windows, you can alternatively use `build:windows` to build and install to yo
 *   * I need a method of determining which IDs Fosscord controls. Currently I just add them to a list of controlled IDs, but it's not guaranteed that I'll receive every ID I need to use from the server first. Is this a contrived issue?
 * ~~Render channels in guilds~~ Done!
 * ~~Find a way to get images to load properly~~ Done, mostly!
-* * ~~Fix the Settings screen~~ Mostly done!
+* ~~Fix the Settings screen~~ Mostly done!
 * * Bug: deleting a instance breaks the ordering
-* ~~Allow message sending~~ Half done! It breaks after the first message :(
+* ~~Allow message sending~~ ~~Half done! It breaks after the first message :(~~ Done done!
 * Make a PR to Ittai that fixes patching so I don't need to use Zere's library.
 * Handle more dispatch events
 * The move to Ittai broke DMs?

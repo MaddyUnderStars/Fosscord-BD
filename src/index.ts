@@ -9,6 +9,7 @@ import { APIRequest, APIResponse, HttpClient } from "./client/HttpClient";
 import { findIds } from "./util/Snowflake";
 import Instance from "./entities/Instance";
 import { Dispatcher } from "ittai/webpack";
+import { makeUser } from "./entities/User";
 
 export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];
@@ -61,8 +62,7 @@ export default class FosscordPlugin extends Plugin {
 
 		// Patches
 
-		type originalApiMethod = (request: APIRequest) => Promise<APIResponse>;
-		const redirectRequest = async (method: string, request: APIRequest, original: originalApiMethod) => {
+		const redirectRequest = (method: string, request: APIRequest) => {
 			const {
 				url,
 				body,
@@ -78,15 +78,15 @@ export default class FosscordPlugin extends Plugin {
 
 			const client = this.findControllingClient(IdsInRequest);
 			if (!client) {
-				return await original(request);
+				return null;
 			}
 
 			if (url.indexOf("/ack") != -1) {
 				client.log(`Preventing request to /ack, not implemented in server`);
-				return;
+				return null;
 			}
 
-			return await HttpClient.send(client, method, client.instance?.apiUrl + url, body, query);
+			return HttpClient.send(client, method, client.instance?.apiUrl + url, body, query);
 		};
 
 		for (let method of [
@@ -94,7 +94,7 @@ export default class FosscordPlugin extends Plugin {
 			"post",
 			"patch",
 			"put",
-			"options",
+			// "options",
 			"delete",
 		]) {
 			ZLibrary.Patcher.instead(
@@ -102,28 +102,35 @@ export default class FosscordPlugin extends Plugin {
 				ZLibrary.DiscordModules.APIModule,
 				method,
 				async (thisObject: any, args: any[], original: any) => {
-					return await redirectRequest(method, args[0], original);
+					const promise = redirectRequest(method, args[0]);
+					if (!promise) return original(...args);
+
+					const ret = await promise;
+					if (args[1]) args[1](ret);
+
+					return ret;
 				}
 			);
 		}
 
-		ZLibrary.Patcher.instead(
-			"fosscord",
-			ZLibrary.DiscordModules.ChannelStore,
-			"getChannel",
-			(thisObject: any, args: any[], original: any) => {
-				if (!args || !args[0]) return;
-				const [id] = args;
+		// Not needed anymore
+		// ZLibrary.Patcher.instead(
+		// 	"fosscord",
+		// 	ZLibrary.DiscordModules.ChannelStore,
+		// 	"getChannel",
+		// 	(thisObject: any, args: any[], original: any) => {
+		// 		if (!args || !args[0]) return;
+		// 		const [id] = args;
 
-				const client = this.findControllingClient(id);
-				if (!client) return original(id);
+		// 		const client = this.findControllingClient(id);
+		// 		if (!client) return original(id);
 
-				const channel = client.channels.get(id);
-				if (!channel) return null;
+		// 		const channel = client.channels.get(id);
+		// 		if (!channel) return null;
 
-				return makeChannel(channel, client);
-			}
-		);
+		// 		return makeChannel(channel, client);
+		// 	}
+		// );
 
 		ZLibrary.Patcher.instead(
 			"fosscord",
@@ -160,7 +167,7 @@ export default class FosscordPlugin extends Plugin {
 					case "POGGERMODE_UPDATE_COMBO":
 					case "STICKER_PACKS_FETCH_START":
 					case "STICKER_PACKS_FETCH_SUCCESS":
-						return original(event);
+						return original(...args);
 				}
 
 				// faster than recursively scanning event obj
@@ -172,7 +179,7 @@ export default class FosscordPlugin extends Plugin {
 				}
 
 				if (!client) {
-					return original(event);
+					return original(...args);
 				}
 
 				switch (event.type) {
@@ -185,7 +192,7 @@ export default class FosscordPlugin extends Plugin {
 						client.log(`Preventing ${event.type}`);
 						return;
 					case "CHANNEL_SELECT":
-						if (event.channelId) return original(event);
+						if (event.channelId) return original(...args);
 						const guildId = event.guildId;
 						const guild = client.guilds?.get(guildId);
 						if (guild) {
@@ -203,11 +210,11 @@ export default class FosscordPlugin extends Plugin {
 						return original(event);
 					case "MESSAGE_CREATE":
 						if (!event.optimistic) break;
-						event.message.author = client.user;
-						return original(event);
+						event.message.author = makeUser(client.user!, client);
+						break;
 				}
 
-				const ret = original(event);
+				const ret = original(...args);
 				client.log(`No client dispatch handler implemented for fosscord, event ${event.type}`, event);
 				return ret;
 			}
