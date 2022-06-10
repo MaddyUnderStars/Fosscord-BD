@@ -7,7 +7,6 @@ import { Client } from "./client/Client";
 import { makeChannel } from "./entities/Channel";
 import { APIRequest, APIResponse, HttpClient } from "./client/HttpClient";
 import { findIds } from "./util/Snowflake";
-import User from "./entities/User";
 import Instance from "./entities/Instance";
 import { Dispatcher } from "ittai/webpack";
 

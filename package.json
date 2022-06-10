@@ -4,18 +4,18 @@
 		"ittai": "^1.0.3",
 		"patch-package": "^6.4.7"
 	},
-	"name": "testplugin",
+	"name": "fosscord-bd",
 	"version": "1.0.0",
 	"main": "src/index.ts",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "ittai --betterdiscord --distOutput \"./build\"",
+		"build": "ittai --betterdiscord=\"./build\" --distOutput=\"./build\"",
 		"watch": "ittai --betterdiscord --distOutput=\"./build\" --watch",
-		"build:windows": "ittai --betterdiscord=\"%appdata%/BetterDiscord/plugins\" --distOutput \"./build\"",
+		"build:windows": "ittai --betterdiscord=\"%appdata%/BetterDiscord/plugins\" --distOutput=\"./build\"",
 		"watch:windows": "ittai --watch --distOutput=\"./build\" --betterdiscord=\"%appdata%/BetterDiscord/plugins/\"",
 		"postinstall": "patch-package"
 	},
-	"author": "",
-	"license": "ISC",
-	"description": ""
+	"author": "MaddyUnderStars",
+	"license": "AGPLV3",
+	"description": "Discord client plugin allowing connections to Fosscord Instances"
 }
