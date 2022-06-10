@@ -6,6 +6,8 @@ import Instance from "../entities/Instance";
 
 import Collapsible from "./Collapsible";
 
+import "./styles/Settings.css";
+
 interface InstanceProps {
 	instance: Instance,
 	onClick: (instance: Instance) => any;
@@ -21,7 +23,6 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 		<div className="fosscord-settings-instance">
 			<Forms.FormItem
 				title="API URL"
-				style={{ marginTop: "10px" }}
 			>
 				<TextInput
 					value={instance.apiUrl}
@@ -34,7 +35,6 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 
 			<Forms.FormItem
 				title="Token"
-				style={{ marginTop: "10px" }}
 			>
 				<TextInput
 					//@ts-ignore
@@ -47,7 +47,7 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 				/>
 			</Forms.FormItem>
 
-			<Flex style={{ marginTop: "10px" }} align={Flex.Align.CENTER} justify={Flex.Justify.END}>
+			<Flex align={Flex.Align.CENTER} justify={Flex.Justify.END}>
 				<Forms.FormItem>
 					<Button
 						onClick={() => props.onClick(instance)}
@@ -96,9 +96,7 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 				</Collapsible>
 			</div>
 
-			<div style={{ margin: "10px 0 20px 0" }}>
-				<Forms.FormDivider />
-			</div>
+			<Forms.FormDivider className="fosscord-divider" />
 
 			<div className="fosscord-settings-new-Instance">
 				<Collapsible
@@ -118,9 +116,7 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 				</Collapsible>
 			</div>
 
-			<div style={{ margin: "10px 0 20px 0" }}>
-				<Forms.FormDivider />
-			</div>
+			<Forms.FormDivider className="fosscord-divider" />
 
 			<div className="fosscord-settings-instances">
 				{instances.map((instance: Instance, index: number) => {
@@ -128,7 +124,6 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 						<Collapsible
 							title={instance.info ? instance.info.name! : new URL(instance.apiUrl!).hostname}
 							innerStyle={{ padding: "10px" }}
-							style={{ margin: "10px 0 10px 0" }}
 							additionalComponentsRight={
 								<Switch
 									checked={instance.enabled}

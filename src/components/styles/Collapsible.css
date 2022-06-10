@@ -1,0 +1,15 @@
+.fosscord-collapsibleHeader,
+.fosscord-collapsibleHeader-right {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.fosscord-collapsibleHeader button {
+	margin-left: 10px;
+}
+
+.fosscord-collapsibleBody {
+	background-color: rgba(0, 0, 0, 0.1);
+	margin-top: 10px;
+}

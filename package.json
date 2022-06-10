@@ -9,10 +9,10 @@
 	"main": "src/index.ts",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "ittai --betterdiscord=\"./build\" --distOutput=\"./build\"",
-		"watch": "ittai --betterdiscord --distOutput=\"./build\" --watch",
-		"build:windows": "ittai --betterdiscord=\"%appdata%/BetterDiscord/plugins\" --distOutput=\"./build\"",
-		"watch:windows": "ittai --watch --distOutput=\"./build\" --betterdiscord=\"%appdata%/BetterDiscord/plugins/\"",
+		"build": "ittai --betterdiscord=\"./build\"",
+		"watch": "ittai --betterdiscord=\"./build\" --watch",
+		"build:windows": "ittai --betterdiscord=\"%appdata%/BetterDiscord/plugins\"",
+		"watch:windows": "ittai --watch --betterdiscord=\"%appdata%/BetterDiscord/plugins/\"",
 		"postinstall": "patch-package"
 	},
 	"author": "MaddyUnderStars",

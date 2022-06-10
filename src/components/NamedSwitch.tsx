@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Switch, SwitchProps, Text } from "ittai/components";
+import { Switch, SwitchProps } from "ittai/components";
 
 interface NamedSwitchProps extends SwitchProps {
 	name: string;

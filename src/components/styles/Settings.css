@@ -1,0 +1,12 @@
+.fosscord-settings-instance > *,
+.fosscord-settings-instances > * {
+	margin-top: 10px
+}
+
+.fosscord-settings {
+	color: white;
+}
+
+.fosscord-divider {
+	margin: 20px 0 20px 0;
+}
