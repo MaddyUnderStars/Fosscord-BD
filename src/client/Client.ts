@@ -41,7 +41,7 @@ export class Client extends EventTarget {
 	instance?: Instance;
 	controlledIds: ExtendedSet<string> = new ExtendedSet<string>();
 	#socket?: WebSocket;
-	#heartbeat?: number;
+	#heartbeat?: NodeJS.Timer;
 	sequence: number = -1;
 	#reconnectAttempt = 0;
 

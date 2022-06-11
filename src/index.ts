@@ -204,14 +204,12 @@ export default class FosscordPlugin extends Plugin {
 		]) {
 			patcher.instead(
 				"fosscord",
-				//@ts-ignore
 				webpack.findByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 				method,
 				(args: any[], original: any) => {
 					const data = args[0];
 					const client = this.findControllingClient(findIds(data));
 					let originalRet = original(...args);
-					if (method == "getGuildIconURL" && !args[0].icon) return originalRet;
 					if (!client || !originalRet) return originalRet;
 
 					if (originalRet.indexOf("/guilds/") != -1) {

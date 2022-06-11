@@ -1,16 +1,18 @@
 # FosscordBD ( WIP )
 A Discord plugin built with [Ittai](https://git.catvibers.me/Ittai/ittai) that allows connections to multiple Fosscord instances.
 
-## installation
-```bash
-git clone git@github.com:MaddyUnderStars/Fosscord-BD.git
-cd Fosscord-BD
-npm i
-npm run build
+# Installation
+```
+	git clone https://github.com/MaddyUnderStars/Fosscord-BD.git
+	cd Fosscord-BD
+	npm i
+	npm run release
 ```
 
-`build` will compile the plugin for BetterDiscord in the `build` directory, which you can then copy to your plugins folder.
-On Windows, you can alternatively use `build:windows` to build and install to your BD plugins folder. 
+Afterwhich the `build` directory should contain the plugin files.
+* BetterDiscord users can simply copy `build/fosscord.plugin.js` to your plugins folder ( or on Windows `npm run release:bd` to copy there for you ).
+* Powercord users will need to create a folder in their `plugins` directory called `fosscord` and copy both `manifest.json` and `fosscord.plugin.js` to it, renaming the latter to just `index.js`
+* Goosemod is not currently supported
 
 ## Todo
 * ~~Render guilds in the client~~ Done
@@ -23,7 +25,8 @@ On Windows, you can alternatively use `build:windows` to build and install to yo
 * ~~Fix the Settings screen~~ Mostly done!
 * * Bug: deleting a instance breaks the ordering
 * ~~Allow message sending~~ ~~Half done! It breaks after the first message :(~~ Done done!
-* Make a PR to Ittai that fixes patching so I don't need to use Zere's library.
+* ~~The move to Ittai broke DMs?~~ Fixed
+* ~~Make a PR to Ittai that fixes patching so I don't need to use Zere's library.~~
+* Moving to Ittai patching broke guilds without icons ( the flavour text doesn't render )
 * Handle more dispatch events
-* The move to Ittai broke DMs?
 * Much more!
