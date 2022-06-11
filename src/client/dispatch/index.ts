@@ -2,20 +2,13 @@ import { Client, GatewayPayload } from "../Client";
 
 export type DispatchHandler = (this: Client, payload: GatewayPayload) => any;
 
-import Ready from "./Ready";
-import GuildCreate from "./GuildCreate";
-import GuildDelete from "./GuildDelete";
-import MessageCreate from "./MessageCreate";
-import ChannelCreate from "./ChannelCreate";
-import ChannelDelete from "./ChannelDelete";
-
 const handlers: { [key: string]: DispatchHandler; } = {
-	"READY": Ready,
-	"MESSAGE_CREATE": MessageCreate,
-	"GUILD_CREATE": GuildCreate,
-	"GUILD_DELETE": GuildDelete,
-	"CHANNEL_CREATE": ChannelCreate,
-	"CHANNEL_DELETE": ChannelDelete,
+	"READY": require("./Ready").default,
+	"MESSAGE_CREATE": require("./MessageCreate").default,
+	"GUILD_CREATE": require("./GuildCreate").default,
+	"GUILD_DELETE": require("./GuildDelete").default,
+	"CHANNEL_CREATE": require("./ChannelCreate").default,
+	"CHANNEL_DELETE": require("./ChannelDelete").default,
 };
 
 export default handlers;

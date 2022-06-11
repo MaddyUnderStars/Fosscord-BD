@@ -1,17 +1,12 @@
 import { Client, GatewayOpcode, GatewayPayload } from "../Client";
 
-import Hello from "./Hello";
-import InvalidSession from "./InvalidSession";
-import HeartbeatAck from "./HeartbeatAck";
-import Dispatch from "./Dispatch";
-
 export type OpcodeHandler = (this: Client, payload: GatewayPayload) => any;
 
 const handlers: { [key: number]: OpcodeHandler; } = {
-	0: Dispatch,
-	9: InvalidSession,
-	10: Hello,
-	11: HeartbeatAck,
+	0: require("./Dispatch").default,
+	9: require("./InvalidSession").default,
+	10: require("./Hello").default,
+	11: require("./HeartbeatAck").default,
 };
 
 export default handlers;
