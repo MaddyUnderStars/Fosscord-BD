@@ -51,7 +51,9 @@ export default class FosscordPlugin extends Plugin {
 	start = () => {
 		this.setSettingsPanel(() => React.createElement(SettingsPage, { onReload: this.applySettingsChanges }));
 
-		this.doPatches();
+		for (const patch of patches) {
+			patch.call(this);
+		}
 
 		for (let instance of settings.get("instances", [])) {
 			if (!instance.enabled) continue;
@@ -71,12 +73,6 @@ export default class FosscordPlugin extends Plugin {
 					type: "GUILD_DELETE", guild: { id: id },
 				});
 			}
-		}
-	};
-
-	doPatches = () => {
-		for (const patch of patches) {
-			patch.call(this);
 		}
 	};
 }
