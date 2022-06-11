@@ -1,3 +1,4 @@
+import { webpack } from "ittai";
 import { Client } from "../client/Client";
 import BaseClass from "./BaseClass";
 
@@ -22,6 +23,6 @@ export default interface User extends BaseClass {
 }
 
 export const makeUser = (user: Partial<User>, client: Client) => {
-	const userInternal = ZLibrary.WebpackModules.getByPrototypes("addGuildAvatarHash") as any;
+	const userInternal = webpack.findByPrototype("addGuildAvatarHash") as any;
 	return new userInternal(user);
 };

@@ -10,7 +10,8 @@ import Instance from "./entities/Instance";
 import { Dispatcher } from "ittai/webpack";
 import { makeUser } from "./entities/User";
 
-import { React } from "ittai/webpack"
+import { React } from "ittai/webpack";
+import { patcher, webpack } from "ittai";
 
 export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];
@@ -53,16 +54,6 @@ export default class FosscordPlugin extends Plugin {
 	start = async () => {
 		this.setSettingsPanel(() => React.createElement(SettingsPage, { onReload: this.applySettingsChanges }));
 
-		for (let instance of settings.get("instances", [])) {
-			if (!instance.enabled) continue;
-
-			let client = new Client();
-			await client.login(instance);
-			this.clients.push(client);
-		}
-
-		// Patches
-
 		const redirectRequest = (method: string, request: APIRequest) => {
 			const {
 				url,
@@ -98,11 +89,11 @@ export default class FosscordPlugin extends Plugin {
 			// "options",
 			"delete",
 		]) {
-			ZLibrary.Patcher.instead(
+			patcher.instead(
 				"fosscord",
-				ZLibrary.DiscordModules.APIModule,
+				webpack.findByProps("getAPIBaseURL"),
 				method,
-				async (thisObject: any, args: any[], original: any) => {
+				async (args: any[], original: any) => {
 					const promise = redirectRequest(method, args[0]);
 					if (!promise) return original(...args);
 
@@ -114,30 +105,11 @@ export default class FosscordPlugin extends Plugin {
 			);
 		}
 
-		// Not needed anymore
-		// ZLibrary.Patcher.instead(
-		// 	"fosscord",
-		// 	ZLibrary.DiscordModules.ChannelStore,
-		// 	"getChannel",
-		// 	(thisObject: any, args: any[], original: any) => {
-		// 		if (!args || !args[0]) return;
-		// 		const [id] = args;
-
-		// 		const client = this.findControllingClient(id);
-		// 		if (!client) return original(id);
-
-		// 		const channel = client.channels.get(id);
-		// 		if (!channel) return null;
-
-		// 		return makeChannel(channel, client);
-		// 	}
-		// );
-
-		ZLibrary.Patcher.instead(
+		patcher.instead(
 			"fosscord",
-			ZLibrary.DiscordModules.Dispatcher,
+			Dispatcher,
 			"dispatch",
-			(thisObject: any, args: any[] | undefined, original: any) => {
+			(args: any[] | undefined, original: any) => {
 				if (!args) return;
 				const [event] = args;
 
@@ -150,7 +122,6 @@ export default class FosscordPlugin extends Plugin {
 					case "UPDATE_CHANNEL_DIMENSIONS":
 					case "USER_PROFILE_MODAL_OPEN":
 					case "USER_PROFILE_FETCH_START":
-					case "USER_PROFILE_FETCH_SUCCESS":
 					case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
 					case "GUILD_SUBSCRIPTIONS_MEMBERS_ADD":
 					case "NOW_PLAYING_UNMOUNTED":
@@ -213,6 +184,9 @@ export default class FosscordPlugin extends Plugin {
 						if (!event.optimistic) break;
 						event.message.author = makeUser(client.user!, client);
 						break;
+					case "USER_PROFILE_FETCH_SUCCESS":
+						event.connected_accounts = event.connected_accounts ?? [];
+						break;
 				}
 
 				const ret = original(...args);
@@ -228,15 +202,16 @@ export default class FosscordPlugin extends Plugin {
 			"getEmojiURL",
 			"getGuildBannerURL",
 		]) {
-			ZLibrary.Patcher.instead(
+			patcher.instead(
 				"fosscord",
 				//@ts-ignore
-				ZLibrary.WebpackModules.getByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+				webpack.findByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
 				method,
-				(thisObject: any, args: any[], original: any) => {
+				(args: any[], original: any) => {
 					const data = args[0];
 					const client = this.findControllingClient(findIds(data));
 					let originalRet = original(...args);
+					if (method == "getGuildIconURL" && !args[0].icon) return originalRet;
 					if (!client || !originalRet) return originalRet;
 
 					if (originalRet.indexOf("/guilds/") != -1) {
@@ -254,11 +229,11 @@ export default class FosscordPlugin extends Plugin {
 			);
 		}
 
-		ZLibrary.Patcher.instead(
+		patcher.instead(
 			"fosscord",
-			ZLibrary.WebpackModules.getByProps("getUserBannerURLForContext"),
+			webpack.findByProps("getUserBannerURLForContext"),
 			"getUserBannerURLForContext",
-			(thisObject: any, args: any[], original: any) => {
+			(args: any[], original: any) => {
 				const { user, guildMember, size } = args[0];
 				const client = this.findControllingClient(findIds(user));
 				if (!client) return original(...args);
@@ -268,17 +243,25 @@ export default class FosscordPlugin extends Plugin {
 		);
 
 		// Anti tracking stuff
-		ZLibrary.Patcher.instead(
+		patcher.instead(
 			"fosscord",
-			ZLibrary.WebpackModules.getByProps("track", "setSystemAccessibilityFeatures"),
+			webpack.findByProps("track", "setSystemAccessibilityFeatures"),
 			"track",
-			(thisObject: any, args: any[], original: any) => {
+			(args: any[], original: any) => {
 				// let client = this.findControllingClient(window.location.href.split("/"));
 				// if (!client) return original(...args);
 				// client.log("Blocking track");
 				return;
 			}
 		);
+
+		for (let instance of settings.get("instances", [])) {
+			if (!instance.enabled) continue;
+
+			let client = new Client();
+			await client.login(instance);
+			this.clients.push(client);
+		}
 	};
 
 	stop = () => {
@@ -291,7 +274,5 @@ export default class FosscordPlugin extends Plugin {
 				});
 			}
 		}
-
-		ZLibrary.Patcher.unpatchAll("fosscord");
 	};
 }

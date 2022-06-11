@@ -1,3 +1,4 @@
+import { webpack } from "ittai";
 import { Client } from "../client/Client";
 import BaseClass from "./BaseClass";
 
@@ -35,7 +36,7 @@ export interface EventChannel {
 }
 
 export const makeChannel = (channel: Partial<Channel>, client: Client): EventChannel => {
-	const channelInternal = ZLibrary.WebpackModules.getByProps("fromServer") as any;
+	const channelInternal = webpack.findByProps("fromServer") as any;
 	if (!channel.member) channel.members = client.user;
 	channel = new channelInternal(channel);
 		
