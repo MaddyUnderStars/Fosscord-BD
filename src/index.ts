@@ -20,30 +20,15 @@ export default class FosscordPlugin extends Plugin {
 
 		return this.clients.find(x => x.controlledIds.any(...id));
 	};
-
-	// terrible method
+	
+	// was being incredibly annoying so here we are
 	applySettingsChanges = async (instances: Instance[]) => {
-		for (let client of this.clients) {
-			let index = instances.findIndex(x => x.apiUrl === client.instance?.apiUrl);
-			if (index == -1 || !instances[index].enabled) {
-				// client has been deleted or disabled
-				client.stop();
-				for (let [id, guild] of client.guilds) {
-					Dispatcher.dispatch({
-						type: "GUILD_DELETE", guild: { id: id },
-					});
-				}
-				this.clients.splice(index, 1);
-				continue;
-			}
-		}
-
+		this.stop();
 		for (let instance of instances) {
 			if (!instance.enabled) continue;
-			if (this.clients.find(x => x.instance?.apiUrl === instance.apiUrl)) continue;
 
 			let client = new Client();
-			await client.login(instance);
+			client.login(instance);
 			this.clients.push(client);
 		}
 	};

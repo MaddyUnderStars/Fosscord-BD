@@ -139,9 +139,9 @@ export class Client extends EventTarget {
 			if (this.reconnectAttempt >= 5) return;
 			this.log("Will attempt reconnection");
 			setTimeout(() => {
+				if (this.reconnectAttempt >= 5) return;	// we stopped while waiting for timeout
 				this.log(`Attempting reconnection try ${this.reconnectAttempt}`);
 				this.reconnectAttempt++;
-				this.log(this.reconnectAttempt);
 				this.login(instance);
 			}, 5000);
 		});
