@@ -47,6 +47,8 @@ export class HttpClient {
 			headers: fetched.headers,
 		};
 
+		if (!ret.ok) throw ret;
+
 		return ret;
 
 		/*
