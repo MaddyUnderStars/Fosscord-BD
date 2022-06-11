@@ -51,9 +51,33 @@ export default class FosscordPlugin extends Plugin {
 		}
 	};
 
-	start = async () => {
+	start = () => {
 		this.setSettingsPanel(() => React.createElement(SettingsPage, { onReload: this.applySettingsChanges }));
 
+		this.doPatches();
+
+		for (let instance of settings.get("instances", [])) {
+			if (!instance.enabled) continue;
+
+			let client = new Client();
+			client.login(instance);
+			this.clients.push(client);
+		}
+	};
+
+	stop = () => {
+		for (let client of this.clients) {
+			client.stop();
+
+			for (let [id, guild] of client.guilds) {
+				Dispatcher.dispatch({
+					type: "GUILD_DELETE", guild: { id: id },
+				});
+			}
+		}
+	};
+
+	doPatches = () => {
 		const redirectRequest = (method: string, request: APIRequest) => {
 			const {
 				url,
@@ -195,6 +219,8 @@ export default class FosscordPlugin extends Plugin {
 			}
 		);
 
+		let iconManager = webpack.findByProps("getUserAvatarURL", "hasAnimatedGuildIcon");
+		if (iconManager.default) iconManager = iconManager.default;		// BetterDiscord ????
 		for (let method of [
 			"getUserAvatarURL",
 			"getGuildMemberAvatarURLSimple",
@@ -204,7 +230,7 @@ export default class FosscordPlugin extends Plugin {
 		]) {
 			patcher.instead(
 				"fosscord",
-				webpack.findByProps("getUserAvatarURL", "hasAnimatedGuildIcon").default,
+				iconManager,
 				method,
 				(args: any[], original: any) => {
 					const data = args[0];
@@ -252,25 +278,5 @@ export default class FosscordPlugin extends Plugin {
 				return;
 			}
 		);
-
-		for (let instance of settings.get("instances", [])) {
-			if (!instance.enabled) continue;
-
-			let client = new Client();
-			await client.login(instance);
-			this.clients.push(client);
-		}
-	};
-
-	stop = () => {
-		for (let client of this.clients) {
-			client.stop();
-
-			for (let [id, guild] of client.guilds) {
-				Dispatcher.dispatch({
-					type: "GUILD_DELETE", guild: { id: id },
-				});
-			}
-		}
 	};
 }
