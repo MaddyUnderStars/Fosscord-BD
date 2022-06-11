@@ -3,10 +3,10 @@ A Discord plugin built with [Ittai](https://git.catvibers.me/Ittai/ittai) that a
 
 # Installation
 ```
-	git clone https://github.com/MaddyUnderStars/Fosscord-BD.git
-	cd Fosscord-BD
-	npm i
-	npm run release
+git clone https://github.com/MaddyUnderStars/Fosscord-BD.git
+cd Fosscord-BD
+npm i
+npm run release
 ```
 
 Afterwhich the `build` directory should contain the plugin files.
