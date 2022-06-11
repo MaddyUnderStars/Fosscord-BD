@@ -78,6 +78,7 @@ export default function (this: FosscordPlugin) {
 					if (!event.guildMember || !event.guildMember.user || !event.guildMember.id) {
 						if (event.guildMember && event.user) event.guildMember.user = event.user;
 						else return;
+						break;
 					}
 					return original(event);
 				case "MESSAGE_CREATE":

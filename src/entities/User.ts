@@ -1,4 +1,4 @@
-import { webpack } from "ittai";
+import { patcher, webpack } from "ittai";
 import { Client } from "../client/Client";
 import BaseClass from "./BaseClass";
 
@@ -24,5 +24,17 @@ export default interface User extends BaseClass {
 
 export const makeUser = (user: Partial<User>, client: Client) => {
 	const userInternal = webpack.findByPrototype("addGuildAvatarHash") as any;
-	return new userInternal(user);
+	const ret = new userInternal(user);
+
+	// patcher.instead(
+	// 	"fosscord",
+	// 	ret,
+	// 	"getAvatarURL",
+	// 	(args, original) => {
+	// 		client.log(args);
+	// 		return original(...args);
+	// 	}
+	// )
+
+	return ret;
 };
