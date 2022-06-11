@@ -43,7 +43,7 @@ export class Client extends EventTarget {
 	#socket?: WebSocket;
 	#heartbeat?: NodeJS.Timer;
 	sequence: number = -1;
-	#reconnectAttempt = 0;
+	reconnectAttempt = 0;
 
 	user?: User;
 	guilds: Collection<Guild> = new Collection<Guild>();
@@ -124,24 +124,26 @@ export class Client extends EventTarget {
 		this.#socket = new WebSocket(this.instance.gatewayUrl!);
 
 		this.#socket.addEventListener("open", (e) => {
-			this.log(`Connected to gateway`);
-
-			this.#reconnectAttempt = 0;
+			this.log(`Connection established`);
 
 			this.#identity();
 		});
 
 		this.#socket.addEventListener("message", this.#handleGatewayMessage);
 
-		this.#socket.addEventListener("close", () => {
+		this.#socket.addEventListener("close", (close) => {
 			clearInterval(this.#heartbeat);
-			this.log(`Disconnected from gateway`);
+			this.log(`Disconnected from gateway ${close.code} : ${close.reason}`);
 			this.dispatchEvent(new ClientEvent("close"));
 
-			if (this.#reconnectAttempt > 5) return;
-			this.log(`Attempting reconnection`);
-			this.#reconnectAttempt++;
-			this.login(instance);
+			if (this.reconnectAttempt >= 5) return;
+			this.log("Will attempt reconnection");
+			setTimeout(() => {
+				this.log(`Attempting reconnection try ${this.reconnectAttempt}`);
+				this.reconnectAttempt++;
+				this.log(this.reconnectAttempt);
+				this.login(instance);
+			}, 5000);
 		});
 	};
 
@@ -192,6 +194,6 @@ export class Client extends EventTarget {
 	stop = () => {
 		if (this.#socket) this.#socket.close();
 		if (this.#heartbeat) clearInterval(this.#heartbeat);
-		this.#reconnectAttempt = Infinity;
+		this.reconnectAttempt = Infinity;
 	};
 }

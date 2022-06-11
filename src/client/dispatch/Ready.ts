@@ -20,6 +20,7 @@ const handler: DispatchHandler = function (payload) {
 	}
 
 	this.log(`Ready as ${this.user?.username}`);
+	this.reconnectAttempt = 0;
 
 	for (var [id, guild] of this.guilds!) {
 		DispatchGuild(guild, this);
