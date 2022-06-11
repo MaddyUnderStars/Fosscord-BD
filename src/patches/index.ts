@@ -16,4 +16,5 @@ export default [
 	require("./api").default,
 	require("./dispatcher").default,
 	require("./iconManager").default,
+	require("./loadImage").default,
 ]
