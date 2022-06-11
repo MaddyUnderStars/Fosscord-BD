@@ -39,12 +39,20 @@ export class HttpClient {
 
 		const parsedBody = await fetched.json();
 
+		for (let id of findIds(parsedBody))
+			client.controlledIds.add(id);
+
+		const headersObj: any = {};
+		for (const key in fetched.headers) {
+			headersObj[key.toLowerCase()] = fetched.headers.get(key);
+		}
+
 		const ret = {
 			body: parsedBody,
 			text: JSON.stringify(parsedBody),
 			status: fetched.status,
 			ok: fetched.status == 200,
-			headers: fetched.headers,
+			headers: headersObj,
 		};
 
 		if (!ret.ok) throw ret;
