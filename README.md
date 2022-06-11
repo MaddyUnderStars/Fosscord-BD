@@ -27,6 +27,6 @@ Afterwhich the `build` directory should contain the plugin files.
 * ~~Allow message sending~~ ~~Half done! It breaks after the first message :(~~ Done done!
 * ~~The move to Ittai broke DMs?~~ Fixed
 * ~~Make a PR to Ittai that fixes patching so I don't need to use Zere's library.~~
-* Moving to Ittai patching broke guilds without icons ( the flavour text doesn't render )
+* ~~Moving to Ittai patching broke guilds without icons ( the flavour text doesn't render )~~
 * Handle more dispatch events
 * Much more!
