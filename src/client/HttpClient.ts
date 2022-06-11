@@ -34,6 +34,7 @@ export class HttpClient {
 					"Content-Type": "application/json"
 				},
 				body: body ? JSON.stringify(body) : undefined,
+				mode: "no-cors",
 			}
 		);
 
