@@ -19,7 +19,38 @@ export interface APIResponse {
 }
 
 export class HttpClient {
-	static send = (client: Client, method: string, path: string, body: any = undefined, query: any = undefined): Promise<APIResponse> => new Promise((resolve, reject) => {
+	static send = async (client: Client, method: string, path: string, body: any = undefined, query: any = undefined): Promise<APIResponse> => {
+		if (query) {
+			query = recursiveDelete(query); // can't have undef methods in here
+			path += "?" + new URLSearchParams(query).toString();
+		}
+
+		const fetched = await fetch(
+			path,
+			{
+				method: method.toUpperCase(),
+				headers: {
+					"Authorization": client.instance!.token!,
+					"Content-Type": "application/json"
+				},
+				body: body ? JSON.stringify(body) : undefined,
+			}
+		);
+
+		const parsedBody = await fetched.json();
+
+		const ret = {
+			body: parsedBody,
+			text: JSON.stringify(parsedBody),
+			status: fetched.status,
+			ok: fetched.status == 200,
+			headers: fetched.headers,
+		};
+
+		return ret;
+
+		/*
+
 		const xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = () => {
 			if (xhttp.readyState !== 4) return;
@@ -66,5 +97,7 @@ export class HttpClient {
 		xhttp.setRequestHeader("Authorization", client.instance!.token as string);
 		xhttp.setRequestHeader("Content-Type", "application/json");
 		xhttp.send(JSON.stringify(body));
-	});
+
+		*/
+	};
 }
