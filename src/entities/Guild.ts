@@ -1,3 +1,4 @@
+import { webpack } from "ittai";
 import { Client } from "../client/Client";
 import BaseClass from "./BaseClass";
 import { Channel, makeChannel } from "./Channel";
@@ -56,6 +57,8 @@ export interface Guild extends BaseClass {
 	guild_scheduled_events: [];	// TODO: guild events
 	threads: [];	// TODO: threads
 	members: any[];	// TODO: member type
+	embedded_activities: any[];
+	presences: any[];
 }
 
 export interface EventGuild {
@@ -63,9 +66,9 @@ export interface EventGuild {
 }
 
 export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => {
-	
+
 	// using this makes the guild create event stop working?
-	// const guildInternal = ZLibrary.WebpackModules.getByPrototypes("hasCommunityInfoSubheader") as any;
+	// const guildInternal = webpack.findByPrototype("hasCommunityInfoSubheader") as any;
 	// guild = new guildInternal(guild);
 
 	if (guild.channels)
@@ -74,16 +77,16 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 	else guild.channels = [];
 
 	if (!guild.members) {
-		guild.members = [{
-			id: client.user?.id,
-			username: client.user?.username,
-			avatar: client.user?.avatar,
-			discriminator: client.user?.discriminator,
-			bot: client.user?.bot,
-			user: client.user,
-			permissionOverwrites: [],
-			roles: guild.channels.length ? [guild.id] : [],
-		}];
+		guild.members = [
+			makeUser({
+				id: client.user?.id,
+				username: client.user?.username,
+				avatar: client.user?.avatar,
+				discriminator: client.user?.discriminator,
+				bot: client.user?.bot,
+			},
+			client)
+		];
 	}
 	else {
 		for (var i in guild.members)
@@ -91,6 +94,8 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 	}
 
 	guild.guild_scheduled_events = [];
+	guild.embedded_activities = [];
+	guild.presences = [];
 
 	if (guild.roles)
 		for (var i in guild.roles)

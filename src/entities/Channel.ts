@@ -39,7 +39,7 @@ export const makeChannel = (channel: Partial<Channel>, client: Client): EventCha
 	const channelInternal = webpack.findByProps("fromServer") as any;
 	if (!channel.member) channel.members = client.user;
 	channel = new channelInternal(channel);
-		
+
 	if (!channel.id) {
 		throw new Error("Can't makeChannel without ID");
 	}

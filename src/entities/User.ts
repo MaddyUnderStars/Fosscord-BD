@@ -20,11 +20,19 @@ export default interface User extends BaseClass {
 	banner: string | null;
 	bio: string;
 	premium_since: string;
+
+	user?: User;
+	permissionOverwrites?: any[];
+	roles?: any[];
 }
 
 export const makeUser = (user: Partial<User>, client: Client) => {
 	const userInternal = webpack.findByPrototype("addGuildAvatarHash") as any;
 	const ret = new userInternal(user);
+
+	ret.user = client.user,
+	ret.permissionOverwrites = [];
+	ret.roles = [];
 
 	// patcher.instead(
 	// 	"fosscord",
