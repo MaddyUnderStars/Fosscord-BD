@@ -1,12 +1,12 @@
 import { OpcodeHandler } from ".";
 import { findIds } from "../../util/Snowflake";
 import { Client, ClientEvent } from "../Client";
-import DispatchHandlers from "../dispatch"
+import DispatchHandlers from "../dispatch";
 
-const handler: OpcodeHandler = function(payload) {
+const handler: OpcodeHandler = function (payload) {
 	this.sequence = payload.s!;
 
-	for (let id of findIds(payload.d)) 
+	for (let id of findIds(payload.d))
 		this.controlledIds.add(id);
 
 	const handler = DispatchHandlers[payload.t!];
@@ -16,6 +16,6 @@ const handler: OpcodeHandler = function(payload) {
 
 	this.dispatchEvent(new ClientEvent(payload.t!, payload.d));
 	this.dispatchEvent(new ClientEvent("dispatch", payload));
-}
+};
 
 export default handler;

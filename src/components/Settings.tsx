@@ -79,7 +79,7 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 
 const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (props) => {
 	const [instances, setInstances] = useState<Instance[]>(settings.get("instances", []));
-	const [logLevel, setLogLevel] = useState<string>(settings.get("loggingLevel", "none"));
+	const [logLevel, setLogLevel] = useState<string>(settings.get("loggingLevel", "error"));
 
 	const setInstancesAndSave = (array: Instance[]) => {
 		setInstances(array);

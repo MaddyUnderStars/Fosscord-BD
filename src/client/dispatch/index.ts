@@ -7,6 +7,7 @@ const handlers: { [key: string]: DispatchHandler; } = {
 	"MESSAGE_CREATE": require("./MessageCreate").default,
 	"GUILD_CREATE": require("./GuildCreate").default,
 	"GUILD_DELETE": require("./GuildDelete").default,
+	"GUILD_UPDATE": require("./GuildUpdate").default,
 	"CHANNEL_CREATE": require("./ChannelCreate").default,
 	"CHANNEL_DELETE": require("./ChannelDelete").default,
 };
