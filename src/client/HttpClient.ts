@@ -51,7 +51,7 @@ export class HttpClient {
 			body: parsedBody,
 			text: JSON.stringify(parsedBody),
 			status: fetched.status,
-			ok: fetched.status == 200,
+			ok: fetched.status >= 200 && fetched.status < 300,
 			headers: headersObj,
 		};
 
