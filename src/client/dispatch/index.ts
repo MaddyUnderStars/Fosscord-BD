@@ -10,6 +10,7 @@ const handlers: { [key: string]: DispatchHandler; } = {
 	"GUILD_UPDATE": require("./GuildUpdate").default,
 	"CHANNEL_CREATE": require("./ChannelCreate").default,
 	"CHANNEL_DELETE": require("./ChannelDelete").default,
+	"USER_NOTE_UPDATE": require("./UserNoteUpdate").default,
 };
 
 export default handlers;
