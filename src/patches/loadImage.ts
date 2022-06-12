@@ -10,7 +10,10 @@ export default function (this: FosscordPlugin) {
 		(args, original) => {
 			let [url, callback]: [string, any] = args;
 			const client = this.findControllingClient(
-				findIds(url.split(".").join("/").split("/"))
+				[
+					...findIds(url.split(".").join("/").split("/")),
+					...findIds(window.location.href.split("/")),
+				]
 			);
 			if (!client) return original(...args);
 
