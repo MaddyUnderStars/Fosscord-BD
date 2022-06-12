@@ -54,7 +54,9 @@ export class Client extends EventTarget {
 	}
 
 	#_log = (type: string, ...value: any[]) => {
+		type = type.toLowerCase();
 		const levels = [
+			"debug",
 			"log",
 			"warn",
 			"error",
@@ -65,6 +67,8 @@ export class Client extends EventTarget {
 			levels.indexOf(type) < levels.indexOf(enabledLevel))
 			return;
 
+		if (type == "debug") type = "log";
+
 		//@ts-ignore
 		return logger[type](
 			`[ ${this.instance?.info ?
@@ -73,6 +77,7 @@ export class Client extends EventTarget {
 			...value
 		);
 	};
+	debug = (...value: any[]) => this.#_log("debug", ...value);
 	log = (...value: any[]) => this.#_log("log", ...value);
 	warn = (...value: any[]) => this.#_log("warn", ...value);
 	error = (...value: any[]) => this.#_log("error", ...value);
@@ -150,11 +155,11 @@ export class Client extends EventTarget {
 	#handleGatewayMessage = (e: MessageEvent) => {
 		const payload: GatewayPayload = recursiveDelete(JSON.parse(e.data));
 		if (this.sequence < 0)
-			this.log(`Received from gateway`, payload.op);
+			this.debug(`Received from gateway`, payload.op);
 
 		const handler = OpcodeHandlers[payload.op];
 		if (!handler) {
-			this.warn(`No handler for opcode ${payload.op}`);
+			this.debug(`No handler for opcode ${payload.op}`);
 			return;
 		}
 
@@ -173,7 +178,7 @@ export class Client extends EventTarget {
 	setHeartbeat = (interval: number) => {
 		if (this.#heartbeat) clearInterval(this.#heartbeat);
 
-		this.log(`set heartbeat interval to ${interval}`);
+		this.debug(`set heartbeat interval to ${interval}`);
 		this.#heartbeat = setInterval(() => {
 			this.#send({
 				op: GatewayOpcode.Heartbeat,

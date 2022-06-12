@@ -102,7 +102,8 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 							value={logLevel}
 							options={{
 								"none": "None",
-								"log": "All",
+								"debug": "Debug",
+								"log": "Info",
 								"warn": "Warnings",
 								"error": "Errors",
 							}}

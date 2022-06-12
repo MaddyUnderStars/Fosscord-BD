@@ -57,18 +57,18 @@ export default function (this: FosscordPlugin) {
 			switch (event.type) {
 				case "CHANNEL_LOCAL_ACK":
 				case "TYPING_START_LOCAL":
-					client.log(`Preventing ${event.type}, not implemented in server`);
+					client.debug(`Preventing ${event.type}, not implemented in server`);
 					return;
 				case "GUILD_SUBSCRIPTIONS_FLUSH":
 				case "TRACK":
-					client.log(`Preventing ${event.type}`);
+					client.debug(`Preventing ${event.type}`);
 					return;
 				case "CHANNEL_SELECT":
 					if (event.channelId) return original(...args);
 					const guildId = event.guildId;
 					const guild = client.guilds?.get(guildId);
 					if (guild) {
-						client.log(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`);
+						client.debug(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`);
 						return original({
 							...event,
 							channelId: guild.channels[0].id,
@@ -91,7 +91,7 @@ export default function (this: FosscordPlugin) {
 			}
 
 			const ret = original(...args);
-			client.log(`No client dispatch handler implemented for fosscord, event ${event.type}`, event);
+			client.debug(`No client dispatch handler implemented for fosscord, event ${event.type}`, event);
 			return ret;
 		}
 	);

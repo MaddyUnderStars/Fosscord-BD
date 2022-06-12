@@ -23,7 +23,7 @@ export default function (this: FosscordPlugin) {
 		}
 
 		if (url.indexOf("/ack") != -1) {
-			client.log(`Preventing request to /ack, not implemented in server`);
+			client.debug(`Preventing request to /ack, not implemented in server`);
 			return null;
 		}
 
