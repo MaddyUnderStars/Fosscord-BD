@@ -15,6 +15,7 @@ import LoginModal from "./LoginModal";
 
 interface InstanceProps {
 	instance: Instance,
+	setInstance: (instance: Instance) => any,
 	onClick: (instance: Instance) => any;
 	onDelete: () => any;
 	resetOnSubmit?: boolean,
@@ -23,7 +24,7 @@ interface InstanceProps {
 
 const InstanceElement: React.FC<InstanceProps> = (props) => {
 	props.showDelete = props.showDelete ?? true;
-	const [instance, setInstance] = useState(props.instance);
+	let { instance, setInstance } = props;
 	const [error, setError] = useState<string>();
 
 	const openLoginModal = () => {
@@ -121,6 +122,7 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (props) => {
 	const [instances, setInstances] = useState<Instance[]>(settings.get("instances", []));
 	const [logLevel, setLogLevel] = useState<string>(settings.get("loggingLevel", "error"));
+	const [newInstance, setNewInstance] = useState<Instance>({});
 
 	const setInstancesAndSave = async (array: Instance[]) => {
 		setInstances(array);
@@ -165,13 +167,14 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 					innerStyle={{ padding: "10px" }}
 				>
 					<InstanceElement
-						instance={{}}
+						instance={newInstance}
+						setInstance={setNewInstance}
 						resetOnSubmit={true}
 						showDelete={false}
 						onDelete={() => { }}
-						onClick={(newInstance) => {
-							newInstance.enabled = true;
-							setInstancesAndSave([...instances, newInstance]);
+						onClick={(val) => {
+							val.enabled = true;
+							setInstancesAndSave([...instances, val]);
 						}}
 					/>
 				</Collapsible>
@@ -180,7 +183,7 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 			<Forms.FormDivider className="fosscord-divider" />
 
 			<div className="fosscord-settings-instances">
-				{instances.map((instance: Instance, index: number) => {
+				{instances.map((instance: Instance, index: number, array) => {
 					return (
 						<Collapsible
 							title={instance.info ? instance.info.name! : new URL(instance.apiUrl!).hostname}
@@ -189,21 +192,22 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 								<Switch
 									checked={instance.enabled}
 									onChange={(val) => {
-										instances[index].enabled = val;
-										setInstancesAndSave([...instances]);
+										array[index].enabled = val;
+										setInstancesAndSave([...array]);
 									}}
 								/>
 							}
 						>
 							<InstanceElement
 								instance={instance}
+								setInstance={(val) => { array[index] = val; setInstances([...array]) }}
 								onClick={(edited) => {
-									instances[index] = edited;
-									setInstancesAndSave([...instances]);
+									array[index] = edited;
+									setInstancesAndSave([...array]);
 								}}
 								onDelete={() => {
-									instances.splice(index, 1);
-									setInstancesAndSave([...instances]);
+									array.splice(index, 1);
+									setInstancesAndSave([...array]);
 								}}
 							/>
 						</Collapsible>

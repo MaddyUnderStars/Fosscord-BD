@@ -85,8 +85,6 @@ export class Client extends EventTarget {
 	login = async (instance: Instance) => {
 		this.instance = instance;
 		if (!this.instance.token) {
-			// TODO: Login with username/password?
-
 			throw new Error("Cannot login without token");
 		}
 
