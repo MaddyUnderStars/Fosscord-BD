@@ -28,7 +28,7 @@ export default class FosscordPlugin extends Plugin {
 			if (!instance.enabled) continue;
 
 			let client = new Client();
-			client.login(instance);
+			await client.login(instance);
 			this.clients.push(client);
 		}
 	};

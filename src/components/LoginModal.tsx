@@ -1,5 +1,5 @@
 import { Button, Forms, Modal, TextInput } from "ittai/components";
-import { React } from "ittai/webpack";
+import { ModalActions, React } from "ittai/webpack";
 import { HttpClient } from "../client/HttpClient";
 import Instance from "../entities/Instance";
 const { useState } = React;
@@ -31,14 +31,12 @@ const LoginModal: React.FC<LoginModalProps> = (props: any) => {
 			size={Modal.ModalSize.DYNAMIC}
 			transitionState={1}
 		>
-			<Modal.ModalFooter>
-				<div>
-					{"Test"}
-				</div>
-			</Modal.ModalFooter>
+			<Modal.ModalHeader>
+				<Modal.ModalCloseButton onClick={() => { ModalActions.closeModal("fosscord-login"); }} />
+			</Modal.ModalHeader>
 
 			<Modal.ModalContent>
-				<div>
+				<div style={{ padding: "20px" }}>
 					<Forms.FormItem title={"Username"}>
 						<TextInput
 							value={username}
@@ -49,6 +47,8 @@ const LoginModal: React.FC<LoginModalProps> = (props: any) => {
 
 					<Forms.FormItem title={"Password"}>
 						<TextInput
+							//@ts-ignore
+							type="password"
 							value={password}
 							placeholder={"Password"}
 							onChange={(value) => { setPassword(value); }}
@@ -59,8 +59,9 @@ const LoginModal: React.FC<LoginModalProps> = (props: any) => {
 						<Button
 							onClick={async () => {
 								if (!username || !password) return;
-								const token = login(props.instance, username, password);
+								const token = await login(props.instance, username, password);
 								props.onLogin(token);
+								ModalActions.closeModal("fosscord-login");
 							}}
 						>
 							{"Login"}

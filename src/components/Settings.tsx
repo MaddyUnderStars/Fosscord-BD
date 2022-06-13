@@ -24,6 +24,20 @@ interface InstanceProps {
 const InstanceElement: React.FC<InstanceProps> = (props) => {
 	props.showDelete = props.showDelete ?? true;
 	const [instance, setInstance] = useState(props.instance);
+	const [error, setError] = useState<string>();
+
+	const openLoginModal = () => {
+		return (
+			<LoginModal
+				instance={instance}
+				onLogin={(token: string) => {
+					instance.token = token;
+					setInstance({ ...instance });
+				}}
+			/>
+		);
+	};
+
 	return (
 		<div className="fosscord-settings-instance">
 			<Forms.FormItem
@@ -32,6 +46,7 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 				<TextInput
 					value={instance.apiUrl}
 					placeholder="API URL"
+					error={!instance.apiUrl && error ? error : undefined}
 					onChange={(value) => {
 						setInstance({ ...instance, apiUrl: value });
 					}}
@@ -55,18 +70,13 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 			<Flex align={Flex.Align.CENTER} justify={Flex.Justify.END}>
 				<Forms.FormItem>
 					<Button
-						onClick={() => ModalActions.openModal(() => {
-							return (
-								<LoginModal
-									instance={instance}
-									onLogin={(token: string) => {
-										instance.token = token;
-										setInstance({ ...instance });
-									}}
-								/>
-							);
-						})}
-					>
+						onClick={() => {
+							if (!instance.apiUrl) {
+								return setError("Required");
+							}
+							setError(undefined);
+							ModalActions.openModal(openLoginModal, { modalKey: "fosscord-login" });
+						}}>
 						{"Login with password"}
 					</Button>
 				</Forms.FormItem>
@@ -74,7 +84,18 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 				<Forms.FormItem>
 					<Button
 						style={{ marginLeft: "10px" }}
-						onClick={() => props.onClick(instance)}
+						onClick={() => {
+							if (!instance.apiUrl) {
+								return setError("Required");
+							}
+
+							setError(undefined);
+							props.onClick(instance);
+							setInstance({
+								apiUrl: "",
+								token: "",
+							});
+						}}
 					>
 						{"Save"}
 					</Button>
@@ -101,10 +122,10 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 	const [instances, setInstances] = useState<Instance[]>(settings.get("instances", []));
 	const [logLevel, setLogLevel] = useState<string>(settings.get("loggingLevel", "error"));
 
-	const setInstancesAndSave = (array: Instance[]) => {
+	const setInstancesAndSave = async (array: Instance[]) => {
 		setInstances(array);
 		settings.set("instances", array);
-		props.onReload(array);
+		await props.onReload(array);
 	};
 
 	return (
