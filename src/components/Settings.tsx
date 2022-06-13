@@ -1,8 +1,8 @@
-import { React } from "ittai/webpack";
+import { ModalActions, React } from "ittai/webpack";
 const { useState } = React;
 // import * as React from "react";
 // import { useState } from "react";
-import { Button, Flex, TextInput, Forms, Switch } from "ittai/components";
+import { Button, Flex, TextInput, Forms, Switch, Modal } from "ittai/components";
 import * as settings from "ittai/settings";
 import Instance from "../entities/Instance";
 
@@ -11,6 +11,7 @@ import Collapsible from "./Collapsible";
 import "./styles/Settings.css";
 import NamedElement from "./NamedElement";
 import Dropdown from "./Dropdown";
+import LoginModal from "./LoginModal";
 
 interface InstanceProps {
 	instance: Instance,
@@ -54,6 +55,25 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 			<Flex align={Flex.Align.CENTER} justify={Flex.Justify.END}>
 				<Forms.FormItem>
 					<Button
+						onClick={() => ModalActions.openModal(() => {
+							return (
+								<LoginModal
+									instance={instance}
+									onLogin={(token: string) => {
+										instance.token = token;
+										setInstance({ ...instance });
+									}}
+								/>
+							);
+						})}
+					>
+						{"Login with password"}
+					</Button>
+				</Forms.FormItem>
+
+				<Forms.FormItem>
+					<Button
+						style={{ marginLeft: "10px" }}
 						onClick={() => props.onClick(instance)}
 					>
 						{"Save"}

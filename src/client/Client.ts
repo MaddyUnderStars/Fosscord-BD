@@ -95,7 +95,11 @@ export class Client extends EventTarget {
 				throw new Error("Cannot fetch gateway URL without API URL");
 			}
 
-			const response = await HttpClient.send(this, "GET", `${this.instance.apiUrl}/gateway/bot`);
+			const response = await HttpClient.send({
+				client: this,
+				method: "GET",
+				path: `${this.instance.apiUrl}/gateway/bot`,
+			});
 			if (!response || !response.body) throw new Error("Could not fetch gatway URL");
 			this.instance.gatewayUrl = response.body!.url;
 		}
@@ -114,7 +118,11 @@ export class Client extends EventTarget {
 
 			let body;
 			try {
-				body = (await HttpClient.send(this, "GET", `${this.instance.apiUrl}/ping`)).body;
+				body = (await HttpClient.send({
+					client: this,
+					method: "GET",
+					path: `${this.instance.apiUrl}/ping`
+				})).body;
 			}
 			catch (e) { }
 
@@ -171,6 +179,14 @@ export class Client extends EventTarget {
 			op: GatewayOpcode.Identify,
 			d: {
 				token: this.instance?.token,
+				capabilities: 509,
+				compress: false,
+				presence: { status: "online", since: 0, activities: [], afk: false },
+				// properties: {
+				// 	"$os": "Windows",
+				// 	"$browser": "test client",
+				// 	"$device": "test client",
+				// }
 			}
 		});
 	};

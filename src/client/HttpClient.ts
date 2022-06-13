@@ -18,29 +18,48 @@ export interface APIResponse {
 	text: string,
 }
 
+export interface HttpClientSendOptions {
+	client?: Client,
+	query?: { [key: string]: any; },
+	body?: { [key: string]: any; },
+	path: string,
+	method: string,
+}
+
 export class HttpClient {
-	static send = async (client: Client, method: string, path: string, body: any = undefined, query: any = undefined): Promise<APIResponse> => {
+	static send = async (options: HttpClientSendOptions): Promise<APIResponse> => {
+		let {
+			client,
+			query,
+			body,
+			path,
+			method
+		} = options;
+
 		if (query) {
 			query = recursiveDelete(query); // can't have undef methods in here
 			path += "?" + new URLSearchParams(query).toString();
 		}
 
+		const headers: any = {
+			"Content-Type": "application/json"
+		};
+		if (client) headers["Authorization"] = client!.instance!.token;
+
 		const fetched = await fetch(
 			path,
 			{
 				method: method.toUpperCase(),
-				headers: {
-					"Authorization": client.instance!.token!,
-					"Content-Type": "application/json"
-				},
+				headers: headers,
 				body: body ? JSON.stringify(body) : undefined,
 			}
 		);
 
 		const parsedBody = await fetched.json();
 
-		for (let id of findIds(parsedBody))
-			client.controlledIds.add(id);
+		if (client)
+			for (let id of findIds(parsedBody))
+				client.controlledIds.add(id);
 
 		const headersObj: any = {};
 		for (const key in fetched.headers) {

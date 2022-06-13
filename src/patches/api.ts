@@ -27,7 +27,13 @@ export default function (this: FosscordPlugin) {
 			return null;
 		}
 
-		return HttpClient.send(client, method, client.instance?.apiUrl + url, body, query);
+		return HttpClient.send({
+			client,
+			method,
+			path: client.instance?.apiUrl + url,
+			body,
+			query
+		});
 	};
 
 	for (let method of [
