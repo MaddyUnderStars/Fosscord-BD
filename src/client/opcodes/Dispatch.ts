@@ -1,6 +1,6 @@
 import { OpcodeHandler } from ".";
 import { findIds } from "../../util/Snowflake";
-import { Client, ClientEvent } from "../Client";
+import { ClientEvent } from "../Client";
 import DispatchHandlers from "../dispatch";
 
 const handler: OpcodeHandler = function (payload) {

@@ -1,4 +1,6 @@
 import { DispatchHandler } from ".";
+import { makeChannel } from "../../entities/Channel";
+import { makeGuild } from "../../entities/Guild";
 import User, { makeUser } from "../../entities/User";
 import DispatchGuild from "../../util/DispatchGuild";
 import { Collection } from "../../util/Structures";
@@ -7,14 +9,14 @@ const handler: DispatchHandler = function (payload) {
 	this.user = makeUser(payload.d.user, this) as User;
 	this.guilds = new Collection();
 	for (let guild of payload.d.guilds) {
-		this.guilds.set(guild.id, guild);
+		this.guilds.set(guild.id, makeGuild(guild, this) as any);
 		this.controlledIds.add(guild.id);
 	}
 
 	this.channels = new Collection();
 	for (let [id, guild] of this.guilds) {
 		for (let channel of guild.channels) {
-			this.channels.set(channel.id, channel);
+			this.channels.set(channel.id, makeChannel(channel, this) as any);
 			this.controlledIds.add(channel.id);
 		}
 	}
