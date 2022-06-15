@@ -31,7 +31,9 @@ Afterwhich the `build` directory should contain the plugin files.
 * ~~The move to Ittai broke DMs?~~ Fixed
 * ~~Make a PR to Ittai that fixes patching so I don't need to use Zere's library.~~
 * ~~Moving to Ittai patching broke guilds without icons ( the flavour text doesn't render )~~
-* Member list is broken, and sometimes also breaks on discord.com guilds
+* ~~Member list is broken, and sometimes also breaks on discord.com guilds~~ Half fixed!
+  * Majority of members don't load, not sure why. Theyre just always the placeholder thing
+  * Member list elements are greyed out but still function perfectly fine
 * Friends lists
 * Creating a DM doesn't find an existing DM, it creates a new one each time
 * Loading weird channel types or messages breaks guild navigation ( looking at you znw.social )

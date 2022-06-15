@@ -27,6 +27,7 @@ export enum GatewayOpcode {
 	InvalidSession = 9,
 	Hello = 10,
 	HeartbeatAck = 11,
+	LazyRequest = 14,
 }
 
 export class ClientEvent extends Event {
@@ -214,5 +215,18 @@ export class Client extends EventTarget {
 		if (this.#socket) this.#socket.close();
 		if (this.#heartbeat) clearInterval(this.#heartbeat);
 		this.reconnectAttempt = Infinity;
+	};
+
+	sendLazyRequest = (guild_id: string, channelId: string, ranges: number[][]) => {
+		return this.#send({
+			op: GatewayOpcode.LazyRequest,
+			d: {
+				guild_id,
+				channels: { [channelId]: ranges },
+				// both typing and activities are unused in fosscord currently
+				typing: false,
+				activities: false,
+			}
+		});
 	};
 }

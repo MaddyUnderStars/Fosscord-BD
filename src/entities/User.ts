@@ -34,15 +34,15 @@ export const makeUser = (user: Partial<User>, client: Client) => {
 	ret.permissionOverwrites = [];
 	ret.roles = [];
 
-	// patcher.instead(
-	// 	"fosscord",
-	// 	ret,
-	// 	"getAvatarURL",
-	// 	(args, original) => {
-	// 		client.log(args);
-	// 		return original(...args);
-	// 	}
-	// )
+	patcher.instead(
+		"fosscord",
+		ret,
+		"getAvatarSource",
+		(args, original) => {
+			client.log(args);
+			return original(...args);
+		}
+	)
 
 	return ret;
 };

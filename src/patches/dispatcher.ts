@@ -22,8 +22,6 @@ export default function (this: FosscordPlugin) {
 				case "UPDATE_CHANNEL_DIMENSIONS":
 				case "USER_PROFILE_MODAL_OPEN":
 				case "USER_PROFILE_FETCH_START":
-				case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
-				case "GUILD_SUBSCRIPTIONS_MEMBERS_ADD":
 				case "NOW_PLAYING_UNMOUNTED":
 				case "ENABLE_AUTOMATIC_ACK":
 				case "DISABLE_AUTOMATIC_ACK":
@@ -88,6 +86,18 @@ export default function (this: FosscordPlugin) {
 				case "USER_PROFILE_FETCH_SUCCESS":
 					event.connected_accounts = event.connected_accounts ?? [];
 					break;
+				case "GUILD_SUBSCRIPTIONS_CHANNEL": // lazy guild member request op 14
+					client.sendLazyRequest(event.guildId, event.channelId, event.ranges);
+					return;
+
+				/*
+					TODO: Handle
+					* GUILD_MEMBER_LIST_UPDATE,	// lazy guilds, has `ops` prop though not sure how to handle that
+
+					* GUILD_SUBSCRIPTIONS_MEMBERS_ADD 		// member subscriptions when viewing user popups
+					* GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE
+					* 
+				*/
 			}
 
 			const ret = original(...args);

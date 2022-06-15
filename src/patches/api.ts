@@ -36,6 +36,12 @@ export default function (this: FosscordPlugin) {
 		});
 	};
 
+	// TODO: It would be a nicer solution to just patch XMLHttpRequest instead
+	// However, on launch Discord seems to store a copy of XMLHttpRequest.prototype, and uses that instead
+	// Would this prevent me from patching it? I can't load before they store this
+	// It would be fine if for some reason the variable is actually a reference
+	// But I haven't tested yet
+
 	for (let method of [
 		"get",
 		"post",
@@ -59,4 +65,18 @@ export default function (this: FosscordPlugin) {
 			}
 		);
 	}
+
+	// not the function I want
+	// I need some way to patch the module containing getXHR
+	// OR the frozen list functions that return API routes
+	// which I can't patch
+	// patcher.instead(
+	// 	"fosscord",
+	// 	webpack.findByProps("MultiUploader").MultiUploader.prototype,
+	// 	"uploadFiles",
+	// 	function(this: any, args, original) {
+	// 		console.log(args, this);
+	// 		return original(...args);
+	// 	}
+	// )
 }
