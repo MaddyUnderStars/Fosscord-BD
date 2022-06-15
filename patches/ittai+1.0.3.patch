@@ -11,6 +11,21 @@ index d4fd09b..eece344 100644
  		},
  		removeSetting: (key, value) => {
  			delete this.__ittaiGMSettings?.[key]
+diff --git a/node_modules/ittai/entities/Plugin.js b/node_modules/ittai/entities/Plugin.js
+index b109a56..b768ec2 100644
+--- a/node_modules/ittai/entities/Plugin.js
++++ b/node_modules/ittai/entities/Plugin.js
+@@ -78,6 +78,10 @@ export default /**
+ 			hasSettingsPanel = false;
+ 			cachedCss = [];
+ 
++			load() {
++				if (this.load) this.instance.load();
++			}
++
+ 			start() {
+ 				try {
+ 					this.cachedCss.forEach((e, k) => {
 diff --git a/node_modules/ittai/logger/createArguments.js b/node_modules/ittai/logger/createArguments.js
 index 3a4499c..2358a96 100644
 --- a/node_modules/ittai/logger/createArguments.js
@@ -24,10 +39,19 @@ index 3a4499c..2358a96 100644
  		...args,
  	];
 diff --git a/node_modules/ittai/patcher/patch.js b/node_modules/ittai/patcher/patch.js
-index c64e9e2..8c9a293 100644
+index c64e9e2..1518865 100644
 --- a/node_modules/ittai/patcher/patch.js
 +++ b/node_modules/ittai/patcher/patch.js
-@@ -51,10 +51,14 @@ export default /**
+@@ -12,6 +12,8 @@ export default /**
+  * @memberof module:patcher
+  * @tutorial patching
+  */ function patch(name, object, functionName, type, patchFunction) {
++	if (!object) throw new Error("Cannot patch nothing!");
++
+ 	const id = object.__ittai__ ?? randomString(25, Object.keys(patches));
+ 	object.__ittai__ = object.__ittai__ ?? id;
+ 	if (!patches[id]) patches[id] = {};
+@@ -51,10 +53,14 @@ export default /**
  
  	if (!patches[id][functionName]) {
  		patches[id][functionName] = {
@@ -43,7 +67,7 @@ index c64e9e2..8c9a293 100644
  		const props = { ...object[functionName] };
  
  		object[functionName] = function (...args) {
-@@ -67,7 +71,7 @@ export default /**
+@@ -67,7 +73,7 @@ export default /**
  			for (const before of befores) {
  				try {
  					const callback = before.patchFunction(args, this);
@@ -52,7 +76,7 @@ index c64e9e2..8c9a293 100644
  				} catch (e) {
  					logger.error(`Error running before patch ${name}.`, e);
  				}
-@@ -83,10 +87,7 @@ export default /**
+@@ -83,10 +89,7 @@ export default /**
  				for (const instead of insteads) {
  					// Do trash merge with Lodash.
  					try {
@@ -64,7 +88,7 @@ index c64e9e2..8c9a293 100644
  							(ranOnce = true);
  					} catch (e) {
  						logger.error(`Error running instead patch ${name}.`, e);
-@@ -100,8 +101,8 @@ export default /**
+@@ -100,8 +103,8 @@ export default /**
  			// After patches.
  			for (const after of afters) {
  				try {

@@ -20,7 +20,7 @@ export default class FosscordPlugin extends Plugin {
 
 		return this.clients.find(x => x.controlledIds.any(...id));
 	};
-	
+
 	// was being incredibly annoying so here we are
 	applySettingsChanges = async (instances: Instance[]) => {
 		this.stop();
@@ -33,8 +33,13 @@ export default class FosscordPlugin extends Plugin {
 		}
 	};
 
-	start = () => {
+	// Called by BetterDiscord
+	load = () => {
 		this.setSettingsPanel(() => React.createElement(SettingsPage, { onReload: this.applySettingsChanges }));
+	};
+
+	start = () => {
+		this.load();
 
 		for (const patch of patches) {
 			patch.call(this);
