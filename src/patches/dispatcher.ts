@@ -37,6 +37,9 @@ export default function (this: FosscordPlugin) {
 				case "POGGERMODE_UPDATE_COMBO":
 				case "STICKER_PACKS_FETCH_START":
 				case "STICKER_PACKS_FETCH_SUCCESS":
+				case "GUILD_MEMBER_LIST_UPDATE":
+				case "GUILD_SUBSCRIPTIONS_MEMBERS_ADD":
+				case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
 					return original(...args);
 			}
 
