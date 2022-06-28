@@ -48,18 +48,18 @@ export default function (this: FosscordPlugin) {
 			if (!client) {
 				// if we couldn't find a client that way try the slower method
 				const ids = findIds(event);
-				client = this.findControllingClient(ids);
+				if (ids.length)
+					client = this.findControllingClient(ids);
 			}
 
 			if (!client) {
+				// this.log(`No client found for event`, event);
 				return original(...args);
 			}
 
 			switch (event.type) {
 				case "CHANNEL_LOCAL_ACK":
 				case "TYPING_START_LOCAL":
-					client.debug(`Preventing ${event.type}, not implemented in server`);
-					return;
 				case "GUILD_SUBSCRIPTIONS_FLUSH":
 				case "TRACK":
 					client.debug(`Preventing ${event.type}`);
