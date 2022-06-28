@@ -31,8 +31,8 @@ export const makeUser = (user: Partial<User>, client: Client) => {
 	const ret = new userInternal(user);
 
 	ret.user = client.user,
-	ret.permissionOverwrites = [];
-	ret.roles = [];
+	ret.permissionOverwrites = ret.permissionOverwrites ?? [];
+	ret.roles = ret.roles ?? [];
 
 	patcher.instead(
 		"fosscord",
@@ -42,7 +42,7 @@ export const makeUser = (user: Partial<User>, client: Client) => {
 			client.log(args);
 			return original(...args);
 		}
-	)
+	);
 
 	return ret;
 };
