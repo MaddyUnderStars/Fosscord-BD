@@ -34,15 +34,16 @@ Afterwhich the `build` directory should contain the plugin files.
 * ~~Member list is broken, and sometimes also breaks on discord.com guilds~~ Half fixed!
   * Majority of members don't load, not sure why. Theyre just always the placeholder thing
   * Member list elements are greyed out but still function perfectly fine
+* ~~Presences~~ Kinda!
+* ~~User notes~~ Done
 * Friends lists
 * Creating a DM doesn't find an existing DM, it creates a new one each time
 * Loading weird channel types or messages breaks guild navigation ( looking at you znw.social )
 * Embeds sometimes don't display properly, but after reloading they do
 * Fosscord invite rendering
-* ~~Presences~~ Kinda!
-* User notes
 * Perhaps rendering your current fosscord account in place of the discord account in bottom left would be a good idea
 * Sending emoji works, but users must be in the same fosscord instance and possibily even guild to render them. Perhaps just send the link?
+  * It was suggested that alt text should be shown in emoji details popup, eg "This emoji is from {instance name}" etc
 * Handle more dispatch events
 * Much more!
 * Maybe I should move this list to github issues
