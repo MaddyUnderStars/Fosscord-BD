@@ -112,7 +112,6 @@ export class Client extends EventTarget {
 		}
 
 		if (this.instance.apiUrl) {
-			// This PR isn't merged on fosscord/fosscord-server but I don't care!
 			// Get instance info from /ping route
 
 			let body;
@@ -126,6 +125,10 @@ export class Client extends EventTarget {
 			catch (e) { }
 
 			if (body?.instance) {
+				// Current default value server-side
+				if (body.instance.name == "Fosscord Instance")
+					body.instance.name = new URL(this.instance.gatewayUrl!).host;
+
 				this.instance.info = body.instance;
 			}
 		}
