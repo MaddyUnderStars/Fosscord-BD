@@ -52,6 +52,7 @@ export class HttpClient {
 				method: method.toUpperCase(),
 				headers: headers,
 				body: body ? JSON.stringify(body) : undefined,
+				cache: "no-cache",
 			}
 		);
 
