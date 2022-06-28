@@ -1,3 +1,4 @@
+import { logger } from "ittai";
 import recursiveDelete from "../util/RecursivelyDelete";
 import { findIds } from "../util/Snowflake";
 import { Client } from "./Client";
@@ -46,15 +47,28 @@ export class HttpClient {
 		};
 		if (client) headers["Authorization"] = client!.instance!.token;
 
-		const fetched = await fetch(
-			path,
-			{
-				method: method.toUpperCase(),
-				headers: headers,
-				body: body ? JSON.stringify(body) : undefined,
-				cache: "no-cache",
+
+		const tryFetch = async () => {
+			try {
+				return await fetch(
+					path,
+					{
+						method: method.toUpperCase(),
+						headers: headers,
+						body: body ? JSON.stringify(body) : undefined,
+						cache: "no-cache",
+					}
+				);
 			}
-		);
+			catch (e) {
+				logger.error(`Failed to fetch ${path}, reason`, e);
+				return null;
+			}
+
+		};
+
+		const fetched = await tryFetch();
+		if (!fetched) return { body: {}, text: "", status: 500, ok: false, headers: {} };
 
 		const parsedBody = await fetched.json();
 
