@@ -12,6 +12,9 @@ const handlers: { [key: string]: DispatchHandler; } = {
 	"CHANNEL_DELETE": require("./ChannelDelete").default,
 	"USER_NOTE_UPDATE": require("./UserNoteUpdate").default,
 	"GUILD_MEMBER_LIST_UPDATE": require("./GuildMemberListUpdate").default,
+
+	"PRESENCE_UPDATE": require("./SessionPresenceUpdate").default,
+	"SESSIONS_REPLACE": require("./SessionPresenceUpdate").default,
 };
 
 export default handlers;
