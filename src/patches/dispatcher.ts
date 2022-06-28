@@ -60,10 +60,10 @@ export default function (this: FosscordPlugin) {
 			switch (event.type) {
 				case "CHANNEL_LOCAL_ACK":
 				case "TYPING_START_LOCAL":
-				case "GUILD_SUBSCRIPTIONS_FLUSH":
 				case "TRACK":
 					client.debug(`Preventing ${event.type}`);
 					return;
+
 				case "CHANNEL_SELECT":
 					if (event.channelId) return original(...args);
 					const guildId = event.guildId;
@@ -75,6 +75,7 @@ export default function (this: FosscordPlugin) {
 							channelId: guild.channels[0].id,
 						});
 					}
+					break;
 				case "GUILD_MEMBER_PROFILE_UPDATE":
 					if (!event.guildMember || !event.guildMember.user || !event.guildMember.id) {
 						if (event.guildMember && event.user) event.guildMember.user = event.user;
@@ -82,24 +83,38 @@ export default function (this: FosscordPlugin) {
 						break;
 					}
 					return original(event);
+
 				case "MESSAGE_CREATE":
 					if (!event.optimistic) break;
 					event.message.author = makeUser(client.user!, client);
 					break;
+
 				case "USER_PROFILE_FETCH_SUCCESS":
 					event.connected_accounts = event.connected_accounts ?? [];
+					event.guild_member = event.guild_member ?? event.user;			// TODO: Fosscord doesn't send this
+					// event.guild_member.roles = event.guild_member.roles ?? []	// TODO: How can I fetch our roles? fosscord doesn't send them ^
 					break;
+
 				case "GUILD_SUBSCRIPTIONS_CHANNEL": // lazy guild member request op 14
 					client.sendLazyRequest(event.guildId, event.channelId, event.ranges);
 					return;
 
+				case "GUILD_SUBSCRIPTIONS_FLUSH":
+					// afaik a flush is just a mass remove
+					// TODO: Fosscord does not yet unsubscribe clients, so this is a waste to do right now
+					// for (var channel in event.subscriptions.channels) {
+						// client.sendLazyRequest(event.guildId, channel, []);
+					// }
+					return;
+
+
 				/*
 					TODO: Handle
-					* GUILD_MEMBER_LIST_UPDATE,	// lazy guilds, has `ops` prop though not sure how to handle that
+					* GUILD_MEMBER_LIST_UPDATE,				// lazy guilds, has `ops` prop though not sure how to handle that
 
 					* GUILD_SUBSCRIPTIONS_MEMBERS_ADD 		// member subscriptions when viewing user popups
 					* GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE
-					* 
+					* GUILD_MEMBERS_REQUEST					// { guildIds: [], userIds: [] }, may help fix member list
 				*/
 			}
 
