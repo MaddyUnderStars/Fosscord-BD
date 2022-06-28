@@ -39,7 +39,7 @@ Afterwhich the `build` directory should contain the plugin files.
 * Loading weird channel types or messages breaks guild navigation ( looking at you znw.social )
 * Embeds sometimes don't display properly, but after reloading they do
 * Fosscord invite rendering
-* Presences
+* ~~Presences~~ Kinda!
 * User notes
 * Perhaps rendering your current fosscord account in place of the discord account in bottom left would be a good idea
 * Sending emoji works, but users must be in the same fosscord instance and possibily even guild to render them. Perhaps just send the link?
