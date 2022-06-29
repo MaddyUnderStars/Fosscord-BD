@@ -42,7 +42,7 @@ export class Client extends EventTarget {
 	instance?: Instance;
 	controlledIds: ExtendedSet<string> = new ExtendedSet<string>();
 	#socket?: WebSocket;
-	#heartbeat?: NodeJS.Timer;
+	#heartbeat?: number;
 	sequence: number = -1;
 	reconnectAttempt = 0;
 
@@ -162,7 +162,7 @@ export class Client extends EventTarget {
 			this.reconnectAttempt++;
 			this.login(this.instance!);
 		}, 5000);
-	}
+	};
 
 	#handleGatewayMessage = (e: MessageEvent) => {
 		const payload: GatewayPayload = recursiveDelete(JSON.parse(e.data));
@@ -197,6 +197,11 @@ export class Client extends EventTarget {
 
 	setHeartbeat = (interval: number) => {
 		if (this.#heartbeat) clearInterval(this.#heartbeat);
+
+		this.#send({
+			op: GatewayOpcode.Heartbeat,
+			d: this.sequence >= 0 ? this.sequence : null,
+		});
 
 		this.debug(`set heartbeat interval to ${interval}`);
 		this.#heartbeat = setInterval(() => {

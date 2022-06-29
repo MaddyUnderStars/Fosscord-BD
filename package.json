@@ -2,6 +2,7 @@
 	"dependencies": {
 		"@ittai/builder": "^1.1.0",
 		"@types/react": "^18.0.12",
+		"@types/webpack-env": "^1.17.0",
 		"ittai": "^1.0.3",
 		"patch-package": "^6.4.7"
 	},
@@ -12,7 +13,6 @@
 		"postinstall": "patch-package",
 		"build": "ittai --distOutput=\"./build\" --betterdiscord",
 		"release": "ittai --distOutput=\"./build\" --betterdiscord --production",
-		
 		"build:bd": "ittai --distOutput=\"./build\" --betterdiscord=\"%appdata%/BetterDiscord/plugins\"",
 		"release:bd": "ittai --distOutput=\"./build\" --betterdiscord=\"%appdata%/BetterDiscord/plugins\" --production"
 	},

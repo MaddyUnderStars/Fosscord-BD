@@ -7,8 +7,7 @@ import Instance from "./entities/Instance";
 import { Dispatcher } from "ittai/webpack";
 
 import { React } from "ittai/webpack";
-
-import patches from "./patches";
+import loadAll from "./util/loadAll";
 
 export default class FosscordPlugin extends Plugin {
 	clients: Client[] = [];
@@ -41,7 +40,7 @@ export default class FosscordPlugin extends Plugin {
 	start = () => {
 		this.load();
 
-		for (const patch of patches) {
+		for (const patch of loadAll(require.context("./patches", true, /\.ts$/))) {
 			patch.call(this);
 		}
 

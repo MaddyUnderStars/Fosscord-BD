@@ -91,7 +91,7 @@ export default function (this: FosscordPlugin) {
 
 				case "USER_PROFILE_FETCH_SUCCESS":
 					event.connected_accounts = event.connected_accounts ?? [];
-					event.guild_member = event.guild_member ?? event.user;			// TODO: Fosscord doesn't send this
+					event.guild_member = event.guild_member ?? { joined_at: null, premium_since: event.premium_since };			// TODO: Fosscord doesn't send this
 					// event.guild_member.roles = event.guild_member.roles ?? []	// TODO: How can I fetch our roles? fosscord doesn't send them ^
 					break;
 
@@ -106,8 +106,6 @@ export default function (this: FosscordPlugin) {
 						// client.sendLazyRequest(event.guildId, channel, []);
 					// }
 					return;
-
-
 				/*
 					TODO: Handle
 					* GUILD_MEMBER_LIST_UPDATE,				// lazy guilds, has `ops` prop though not sure how to handle that
