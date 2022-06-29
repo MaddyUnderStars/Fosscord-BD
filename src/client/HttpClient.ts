@@ -12,7 +12,7 @@ export interface APIRequest {
 };
 
 export interface APIResponse {
-	body: { [key: string]: any; } | null,
+	body: any,
 	headers: { [key: string]: any; },
 	ok: boolean,
 	status: number,
@@ -70,7 +70,14 @@ export class HttpClient {
 		const fetched = await tryFetch();
 		if (!fetched) return { body: {}, text: "", status: 500, ok: false, headers: {} };
 
-		const parsedBody = await fetched.json();
+		var parsedBody;
+		try {
+			parsedBody = await fetched.json()
+		}
+		catch (e) {
+			console.error(e);
+			parsedBody = {};
+		}
 
 		if (client)
 			for (let id of findIds(parsedBody))
