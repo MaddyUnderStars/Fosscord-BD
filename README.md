@@ -36,8 +36,9 @@ Afterwhich the `build` directory should contain the plugin files.
   * Member list elements are greyed out but still function perfectly fine
 * ~~Presences~~ Kinda!
 * ~~User notes~~ Done
-* Friends lists
-* Creating a DM doesn't find an existing DM, it creates a new one each time
+* ~~Friends lists~~ Done
+  * Create additional UI for which instance a friend is from
+* ~~Creating a DM doesn't find an existing DM, it creates a new one each time~~ Done?
 * Loading weird channel types or messages breaks guild navigation ( looking at you znw.social )
 * Embeds sometimes don't display properly, but after reloading they do
 * Fosscord invite rendering
