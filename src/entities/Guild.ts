@@ -85,7 +85,7 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 				discriminator: client.user?.discriminator,
 				bot: client.user?.bot,
 			},
-			client)
+				client)
 		];
 	}
 	else {
@@ -93,9 +93,9 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 			guild.members[i] = makeUser(guild.members[i], client);
 	}
 
-	guild.guild_scheduled_events = [];
-	guild.embedded_activities = [];
-	guild.presences = [];
+	guild.guild_scheduled_events = guild.guild_scheduled_events ?? [];
+	guild.embedded_activities = guild.embedded_activities ?? [];
+	guild.presences = guild.presences ?? [];
 
 	if (guild.roles)
 		for (var i in guild.roles)

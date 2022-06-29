@@ -146,21 +146,23 @@ export class Client extends EventTarget {
 
 		this.#socket.addEventListener("message", this.#handleGatewayMessage);
 
-		this.#socket.addEventListener("close", (close) => {
-			clearInterval(this.#heartbeat);
-			this.log(`Disconnected from gateway ${close.code} : ${close.reason}`);
-			this.dispatchEvent(new ClientEvent("close"));
-
-			if (this.reconnectAttempt >= 5) return;
-			this.log("Will attempt reconnection");
-			setTimeout(() => {
-				if (this.reconnectAttempt >= 5) return;	// we stopped while waiting for timeout
-				this.log(`Attempting reconnection try ${this.reconnectAttempt}`);
-				this.reconnectAttempt++;
-				this.login(instance);
-			}, 5000);
-		});
+		this.#socket.addEventListener("close", this.#onClose);
 	};
+
+	#onClose = (close: CloseEvent) => {
+		clearInterval(this.#heartbeat);
+		this.log(`Disconnected from gateway ${close.code} : ${close.reason}`);
+		this.dispatchEvent(new ClientEvent("close"));
+
+		if (this.reconnectAttempt >= 5) return;
+		this.log("Will attempt reconnection");
+		setTimeout(() => {
+			if (this.reconnectAttempt >= 5) return;	// we stopped while waiting for timeout
+			this.log(`Attempting reconnection try ${this.reconnectAttempt}`);
+			this.reconnectAttempt++;
+			this.login(this.instance!);
+		}, 5000);
+	}
 
 	#handleGatewayMessage = (e: MessageEvent) => {
 		const payload: GatewayPayload = recursiveDelete(JSON.parse(e.data));
@@ -208,6 +210,7 @@ export class Client extends EventTarget {
 	#send = (data: GatewayPayload): void => {
 		if (this.#socket?.readyState !== WebSocket.OPEN) {
 			this.error(`Attempted to send data to closed socket. OP ${data.op}, S ${data.s}`);
+			this.#onClose(new CloseEvent("close"));
 			return;
 		}
 
