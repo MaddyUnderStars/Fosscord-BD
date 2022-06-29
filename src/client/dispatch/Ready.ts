@@ -1,3 +1,4 @@
+import { Dispatcher } from "ittai/webpack";
 import { DispatchHandler } from ".";
 import { makeChannel } from "../../entities/Channel";
 import { makeGuild } from "../../entities/Guild";
@@ -19,6 +20,19 @@ const handler: DispatchHandler = function (payload) {
 			this.channels.set(channel.id, makeChannel(channel, this) as any);
 			this.controlledIds.add(channel.id);
 		}
+	}
+
+	for (var relationship of payload.d.relationships || []) {
+		Dispatcher.dispatch({
+			type: "RELATIONSHIP_ADD",
+			relationship: {
+				id: relationship.id,
+				nickname: relationship.nickname,
+				type: relationship.type,
+				user: makeUser(relationship.user, this),
+			},
+			shouldNotifiy: false,
+		})
 	}
 
 	this.log(`Ready as ${this.user?.username}`);

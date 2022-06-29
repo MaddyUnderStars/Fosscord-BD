@@ -13,6 +13,7 @@ const handlers: { [key: string]: DispatchHandler; } = {
 	"USER_NOTE_UPDATE": require("./UserNoteUpdate").default,
 	"GUILD_MEMBER_LIST_UPDATE": require("./GuildMemberListUpdate").default,
 	"GUILD_MEMBER_UPDATE": require("./GuildMemberUpdate").default,
+	"RELATIONSHIP_REMOVE": require("./RelationshipRemove").default,
 
 	"PRESENCE_UPDATE": require("./SessionPresenceUpdate").default,
 	"SESSIONS_REPLACE": require("./SessionPresenceUpdate").default,

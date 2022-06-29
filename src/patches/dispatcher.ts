@@ -1,6 +1,7 @@
 import { patcher } from "ittai";
 import { Dispatcher } from "ittai/webpack";
 import FosscordPlugin from "..";
+import { HttpClient } from "../client/HttpClient";
 import { makeUser } from "../entities/User";
 import { findIds } from "../util/Snowflake";
 
@@ -41,6 +42,34 @@ export default function (this: FosscordPlugin) {
 				case "GUILD_SUBSCRIPTIONS_MEMBERS_ADD":
 				case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
 					return original(...args);
+			}
+
+			switch (event.type) {
+				case "LOAD_RELATIONSHIPS_SUCCESS":
+					//friends list, inject our own
+
+					(async () => {
+						for (let client of this.clients) {
+							let ret;
+							try {
+								ret = await HttpClient.send({
+									path: `${client.instance!.apiUrl}/users/@me/relationships`,
+									method: "GET",
+									client: client
+								});
+								event.relationships.push(...ret.body);	
+							}
+							catch (e) {
+								continue;
+							}
+							console.log(ret);
+						}
+
+						console.log(event);
+						return original(event);
+					})();
+
+					return;
 			}
 
 			// faster than recursively scanning event obj
