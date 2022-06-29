@@ -215,7 +215,7 @@ export class Client extends EventTarget {
 	#send = (data: GatewayPayload): void => {
 		if (this.#socket?.readyState !== WebSocket.OPEN) {
 			this.error(`Attempted to send data to closed socket. OP ${data.op}, S ${data.s}`);
-			this.#onClose(new CloseEvent("close"));
+			// this.#onClose(new CloseEvent("close"));
 			return;
 		}
 
