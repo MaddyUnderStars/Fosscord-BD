@@ -231,7 +231,13 @@ export class Client extends EventTarget {
 		this.reconnectAttempt = Infinity;
 	};
 
-	sendLazyRequest = (guild_id: string, channelId: string, ranges: number[][]) => {
+	#subscribedRanges: { [key: string]: [number, number]; } = {};
+
+	sendLazyRequest = (guild_id: string, channelId: string, ranges: [number, number]) => {
+		const subbed = this.#subscribedRanges[channelId];
+		if (subbed && subbed[0] == ranges[0] && subbed[1] == ranges[1]) return;
+		this.#subscribedRanges[channelId] = ranges;
+
 		return this.#send({
 			op: GatewayOpcode.LazyRequest,
 			d: {
