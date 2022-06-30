@@ -62,10 +62,8 @@ export default function (this: FosscordPlugin) {
 							catch (e) {
 								continue;
 							}
-							console.log(ret);
 						}
 
-						console.log(event);
 						return original(event);
 					})();
 
