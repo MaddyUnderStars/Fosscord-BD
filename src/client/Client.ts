@@ -114,7 +114,7 @@ export class Client extends EventTarget {
 			this.instance.gatewayUrl = parsedGateway.toString();
 		}
 
-		if (this.instance.apiUrl) {
+		if (this.instance.apiUrl && !this.instance.info) {
 			// Get instance info from /ping route
 
 			let body;
