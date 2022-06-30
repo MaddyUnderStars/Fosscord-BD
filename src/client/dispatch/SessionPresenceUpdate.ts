@@ -6,8 +6,7 @@ import { DispatchHandler } from ".";
 const handler: DispatchHandler = function (payload) {
 	const updates = [];
 
-	// TODO: this should not be here
-	// there's most likely a different dispatch event for this
+	// TODO: there's most likely a different dispatch event for this
 	if (payload.t == "SESSIONS_REPLACE") {
 		for (var update of payload.d) {
 			updates.push({
@@ -27,7 +26,7 @@ const handler: DispatchHandler = function (payload) {
 			user: payload.d.user,
 			guildId: payload.d.guild_id,	// not always available
 			id: payload.d.idea,				// ^
-		})
+		});
 	}
 
 	Dispatcher.dispatch({

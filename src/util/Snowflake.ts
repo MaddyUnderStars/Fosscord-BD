@@ -17,12 +17,7 @@ export const findIds = (obj: any, depth = 5): string[] => {
 		const index = key.toLowerCase().indexOf("id");
 		if (index == -1) continue;
 		if (index != key.length - 2) continue;
-		// if (key.toLowerCase().indexOf("_id") == -1	// bad detection algo lets gooo
-		// && key.toLowerCase().indexOf("id") != key.length - 2
-		// && key.length - 2 != -1)
-		// continue;
 
-		// console.log(`Fosscord controls ID ${key}:${value}`);
 		ret.push(value as string);
 	}
 	return ret;

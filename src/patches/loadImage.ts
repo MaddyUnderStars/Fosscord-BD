@@ -21,14 +21,4 @@ export default function (this: FosscordPlugin) {
 			return original(url, callback);
 		}
 	);
-
-	// patcher.instead(
-	// 	"fosscord",
-	// 	webpack.findByProps("isImageLoaded", "loadImage", "getBestMediaProxySize"),
-	// 	"getImageSrc",
-	// 	(args, original) => {
-	// 		console.log("getImageSrc called", args);
-	// 		return original(...args);
-	// 	}
-	// )
 }
