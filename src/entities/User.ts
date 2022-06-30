@@ -26,13 +26,17 @@ export default interface User extends BaseClass {
 	roles?: any[];
 }
 
+const userInternal = webpack.findByPrototype("addGuildAvatarHash") as any;
 export const makeUser = (user: Partial<User>, client: Client) => {
-	const userInternal = webpack.findByPrototype("addGuildAvatarHash") as any;
-	const ret = new userInternal(user);
+	user = new userInternal(user);
 
-	ret.user = client.user,
-	ret.permissionOverwrites = ret.permissionOverwrites ?? [];
-	ret.roles = ret.roles ?? [];
+	const member = user;
+	member.user = user as User,
+	member.permissionOverwrites = member.permissionOverwrites ?? [];
+	member.roles = member.roles ?? [];
 
-	return ret;
+	// add to user store
+	webpack.findByProps("getCurrentUser", "getUser").getUsers()[user.id!] = user;
+
+	return member;
 };

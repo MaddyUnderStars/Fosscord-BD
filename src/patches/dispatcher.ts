@@ -41,6 +41,7 @@ export default function (this: FosscordPlugin) {
 				case "GUILD_MEMBER_LIST_UPDATE":
 				case "GUILD_SUBSCRIPTIONS_MEMBERS_ADD":
 				case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
+				case "PRESENCE_UPDATES":
 					return original(...args);
 			}
 
@@ -57,7 +58,7 @@ export default function (this: FosscordPlugin) {
 									method: "GET",
 									client: client
 								});
-								event.relationships.push(...ret.body);	
+								event.relationships.push(...ret.body);
 							}
 							catch (e) {
 								continue;
@@ -75,7 +76,7 @@ export default function (this: FosscordPlugin) {
 				var client = this.findControllingClient(ids);
 
 			if (!client) {
-				// this.log(`No client found for event`, event);
+				this.log(`No client found for event`, event);
 				return original(...args);
 			}
 
@@ -125,7 +126,7 @@ export default function (this: FosscordPlugin) {
 					// afaik a flush is just a mass remove
 					// TODO: Fosscord does not yet unsubscribe clients, so this is a waste to do right now
 					// for (var channel in event.subscriptions.channels) {
-						// client.sendLazyRequest(event.guildId, channel, []);
+					// client.sendLazyRequest(event.guildId, channel, []);
 					// }
 					return;
 				/*
