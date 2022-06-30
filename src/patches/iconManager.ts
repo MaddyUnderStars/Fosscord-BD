@@ -78,8 +78,8 @@ export default function (this: FosscordPlugin) {
 		webpack.findByPrototype("getAvatarURL", "addGuildAvatarHash").prototype,
 		"getAvatarURL",
 		(args, original) => {
-			let ret = original(...args);
-			const client = this.findControllingClient(args[0]);
+			const ret: any = original(...args);
+			const client = this.findControllingClient([args[0], ...findIds(ret.split("/"))]);
 			if (!client) return ret;
 
 			return ret.replace("https://cdn.discordapp.com", client.instance!.cdnUrl);

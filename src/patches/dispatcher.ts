@@ -76,7 +76,7 @@ export default function (this: FosscordPlugin) {
 				var client = this.findControllingClient(ids);
 
 			if (!client) {
-				this.log(`No client found for event`, event);
+				// this.log(`No client found for event`, event);
 				return original(...args);
 			}
 
