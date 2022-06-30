@@ -22,7 +22,7 @@ Afterwhich the `build` directory should contain the plugin files.
 *   * I need a method of determining which IDs Fosscord controls. Currently I just add them to a list of controlled IDs, but it's not guaranteed that I'll receive every ID I need to use from the server first. Is this a contrived issue?
 * ~~Render channels in guilds~~ Done!
 * ~~Find a way to get images to load properly~~ Done, mostly!
-  * Guild avatars/profiles aren't supported in fosscord and so avatars also break ( only sometimes, though )
+  * ~~Guild avatars/profiles aren't supported in fosscord and so avatars also break ( only sometimes, though )~~ Fixed?
 * ~~Fix the Settings screen~~ Mostly done!
 * * ~~Bug: deleting a instance breaks the ordering~~ Fixed
 * * ~~Logging in with username/password~~ Done
