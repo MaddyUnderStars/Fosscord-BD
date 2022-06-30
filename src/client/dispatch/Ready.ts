@@ -5,7 +5,7 @@ import { makeGuild } from "../../entities/Guild";
 import Relationship from "../../entities/Relationship";
 import User, { makeUser } from "../../entities/User";
 import DispatchGuild from "../../util/DispatchGuild";
-import { Collection } from "../../util/Structures";
+import { Collection } from "@discordjs/collection";
 
 const handler: DispatchHandler = function (payload) {
 	this.user = makeUser(payload.d.user, this) as User;

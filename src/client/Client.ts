@@ -5,9 +5,10 @@ import Instance from "../entities/Instance";
 import Relationship from "../entities/Relationship";
 import User from "../entities/User";
 import recursiveDelete from "../util/RecursivelyDelete";
-import { Collection, ExtendedSet } from "../util/Structures";
+import { ExtendedSet } from "../util/Structures";
 import { HttpClient } from "./HttpClient";
 import OpcodeHandlers from "./opcodes";
+import { Collection } from "@discordjs/collection";
 
 export interface GatewayPayload {
 	op: number;
@@ -48,9 +49,9 @@ export class Client extends EventTarget {
 	reconnectAttempt = 0;
 
 	user?: User;
-	guilds: Collection<Guild> = new Collection();
-	channels: Collection<Channel> = new Collection();
-	relationships: Collection<Relationship> = new Collection();
+	guilds: Collection<string, Guild> = new Collection();
+	channels: Collection<string, Channel> = new Collection();
+	relationships: Collection<string, Relationship> = new Collection();
 
 	constructor() {
 		super();

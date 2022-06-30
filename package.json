@@ -1,5 +1,6 @@
 {
 	"dependencies": {
+		"@discordjs/collection": "^0.7.0",
 		"@ittai/builder": "^1.1.0",
 		"@types/react": "^18.0.12",
 		"@types/webpack-env": "^1.17.0",
