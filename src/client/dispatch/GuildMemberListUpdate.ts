@@ -5,12 +5,26 @@ import { makeUser } from "../../entities/User";
 const handler: DispatchHandler = function (payload) {
 	const data = payload.d;
 
+	const presenceUpdates = [];
+
 	for (var ops of data.ops) {
 		if (Array.isArray(ops.items))
 			for (var item of ops.items) {
 				if (item?.member?.user) {
 					item.member.user = makeUser(item.member.user, this);
-					delete item.member.user.user;	// too lazy to fix in the makeUser method 
+					delete item.member.user.user;	// too lazy to fix in the makeUser method
+
+					if (item.member.presence) {
+						const presence = item.member.presence;
+						presenceUpdates.push({
+							activities: [],
+							clientStatus: {},
+							status: presence.status,
+							user: presence.user,
+							guildId: item.member.guild_id,
+							id: presence.id,
+						});
+					}
 				}
 			}
 	}
@@ -22,6 +36,11 @@ const handler: DispatchHandler = function (payload) {
 		id: data.id,
 		memberCount: data.member_count,
 		ops: data.ops,
+	});
+
+	Dispatcher.dispatch({
+		type: "PRESENCE_UPDATES",
+		updates: presenceUpdates
 	});
 };
 
