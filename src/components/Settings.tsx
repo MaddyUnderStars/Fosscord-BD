@@ -1,8 +1,6 @@
 import { ModalActions, React } from "ittai/webpack";
 const { useState } = React;
-// import * as React from "react";
-// import { useState } from "react";
-import { Button, Flex, TextInput, Forms, Switch, Modal } from "ittai/components";
+import { Button, Flex, TextInput, Forms, Switch } from "ittai/components";
 import * as settings from "ittai/settings";
 import Instance from "../entities/Instance";
 

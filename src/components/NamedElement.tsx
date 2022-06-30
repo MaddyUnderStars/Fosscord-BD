@@ -1,5 +1,3 @@
-// import { React } from "ittai/webpack"
-// import * as React from "react";
 import { React } from "ittai/webpack"
 
 interface NamedElementProps {
@@ -12,7 +10,7 @@ const NamedElement: React.FC<React.PropsWithChildren<NamedElementProps>> = (prop
 			style={{
 				display: "flex",
 				justifyContent: "space-between",
-				alignItems: "center "
+				alignItems: "center"
 			}}
 			className="fosscord-namedSwitch"
 		>

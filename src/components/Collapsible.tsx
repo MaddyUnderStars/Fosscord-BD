@@ -1,6 +1,4 @@
 import { React } from "ittai/webpack"
-// import * as React from "react";
-// import { useState } from "react";
 const { useState } = React;
 import { Button, Forms } from "ittai/components";
 

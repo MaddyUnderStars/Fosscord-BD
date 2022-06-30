@@ -34,15 +34,5 @@ export const makeUser = (user: Partial<User>, client: Client) => {
 	ret.permissionOverwrites = ret.permissionOverwrites ?? [];
 	ret.roles = ret.roles ?? [];
 
-	patcher.instead(
-		"fosscord",
-		ret,
-		"getAvatarSource",
-		(args, original) => {
-			client.log(args);
-			return original(...args);
-		}
-	);
-
 	return ret;
 };
