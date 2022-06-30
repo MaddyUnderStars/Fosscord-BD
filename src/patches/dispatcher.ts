@@ -72,14 +72,9 @@ export default function (this: FosscordPlugin) {
 					return;
 			}
 
-			// faster than recursively scanning event obj
-			let client = this.findControllingClient(window.location.href.split("/"));
-			if (!client) {
-				// if we couldn't find a client that way try the slower method
-				const ids = findIds(event);
-				if (ids.length)
-					client = this.findControllingClient(ids);
-			}
+			const ids = findIds(event);
+			if (ids.length)
+				var client = this.findControllingClient(ids);
 
 			if (!client) {
 				// this.log(`No client found for event`, event);
