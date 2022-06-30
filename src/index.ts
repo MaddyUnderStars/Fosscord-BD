@@ -57,10 +57,22 @@ export default class FosscordPlugin extends Plugin {
 		for (let client of this.clients) {
 			client.stop();
 
+			// cleanup guilds we added
 			for (let [id, guild] of client.guilds) {
 				Dispatcher.dispatch({
 					type: "GUILD_DELETE", guild: { id: id },
 				});
+			}
+
+			// cleanup friends list
+			for (let [id, relationship] of client.relationships) {
+				Dispatcher.dispatch({
+					type: "RELATIONSHIP_REMOVE",
+					relationship: {
+						type: 4,
+						id: id,
+					},
+				})
 			}
 		}
 	};

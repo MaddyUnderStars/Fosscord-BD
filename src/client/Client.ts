@@ -2,6 +2,7 @@ import { logger, settings } from "ittai";
 import { Channel } from "../entities/Channel";
 import { Guild } from "../entities/Guild";
 import Instance from "../entities/Instance";
+import Relationship from "../entities/Relationship";
 import User from "../entities/User";
 import recursiveDelete from "../util/RecursivelyDelete";
 import { Collection, ExtendedSet } from "../util/Structures";
@@ -47,8 +48,9 @@ export class Client extends EventTarget {
 	reconnectAttempt = 0;
 
 	user?: User;
-	guilds: Collection<Guild> = new Collection<Guild>();
-	channels: Collection<Channel> = new Collection<Channel>();
+	guilds: Collection<Guild> = new Collection();
+	channels: Collection<Channel> = new Collection();
+	relationships: Collection<Relationship> = new Collection();
 
 	constructor() {
 		super();

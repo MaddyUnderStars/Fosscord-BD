@@ -2,6 +2,7 @@ import { Dispatcher } from "ittai/webpack";
 import { DispatchHandler } from ".";
 import { makeChannel } from "../../entities/Channel";
 import { makeGuild } from "../../entities/Guild";
+import Relationship from "../../entities/Relationship";
 import User, { makeUser } from "../../entities/User";
 import DispatchGuild from "../../util/DispatchGuild";
 import { Collection } from "../../util/Structures";
@@ -22,17 +23,18 @@ const handler: DispatchHandler = function (payload) {
 		}
 	}
 
-	for (var relationship of payload.d.relationships || []) {
+	for (var relationship of payload.d.relationships as Relationship[] || []) {
 		Dispatcher.dispatch({
 			type: "RELATIONSHIP_ADD",
 			relationship: {
 				id: relationship.id,
 				nickname: relationship.nickname,
 				type: relationship.type,
-				user: makeUser(relationship.user, this),
+				user: makeUser(relationship.user ?? {}, this),
 			},
 			shouldNotifiy: false,
-		})
+		});
+		this.relationships.set(relationship.id, relationship);
 	}
 
 	this.log(`Ready as ${this.user?.username}`);

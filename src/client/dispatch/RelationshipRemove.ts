@@ -9,7 +9,8 @@ const handler: DispatchHandler = function (payload) {
 			type: payload.d.type
 		}
 		
-	})
+	});
+	this.relationships.delete(payload.d.id);
 };
 
 export default handler;
