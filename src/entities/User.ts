@@ -30,6 +30,16 @@ const userInternal = webpack.findByPrototype("addGuildAvatarHash") as any;
 export const makeUser = (user: Partial<User>, client: Client) => {
 	user = new userInternal(user);
 
+	patcher.instead(
+		"fosscord",
+		user,
+		"getAvatarSource",
+		(args, original) => {
+			client.log(args);
+			return original(...args);
+		}
+	);
+
 	const member = user;
 	member.user = user as User,
 	member.permissionOverwrites = member.permissionOverwrites ?? [];

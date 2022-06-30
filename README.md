@@ -33,7 +33,7 @@ Afterwhich the `build` directory should contain the plugin files.
 * ~~Moving to Ittai patching broke guilds without icons ( the flavour text doesn't render )~~
 * ~~Member list is broken, and sometimes also breaks on discord.com guilds~~ Half fixed!
   * ~~Majority of members don't load, not sure why. Theyre just always the placeholder thing~~ Done
-    * Fixing this broke rendering avatars in member list?
+    * ~~Fixing this broke rendering avatars in member list?~~ Fixed
   * Member list elements are greyed out but still function perfectly fine
 * ~~Presences~~ Kinda!
 * ~~User notes~~ Done

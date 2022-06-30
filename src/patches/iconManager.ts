@@ -79,7 +79,7 @@ export default function (this: FosscordPlugin) {
 		"getAvatarURL",
 		(args, original) => {
 			let ret = original(...args);
-			const client = this.findControllingClient(findIds(ret.split("/")));
+			const client = this.findControllingClient(args[0]);
 			if (!client) return ret;
 
 			return ret.replace("https://cdn.discordapp.com", client.instance!.cdnUrl);
