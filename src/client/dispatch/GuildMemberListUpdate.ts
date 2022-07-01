@@ -14,6 +14,22 @@ const handler: DispatchHandler = function (payload) {
 					item.member.user = makeUser(item.member.user, this);
 					delete item.member.user.user;	// too lazy to fix in the makeUser method
 
+					item.member.user.roles = item.member.roles;
+
+					const member = item.member;
+					Dispatcher.dispatch({
+						type: "GUILD_MEMBER_UPDATE",
+						avatar: member.user.avatar,
+						communicationDisabledUntil: null,	// TODO: not implemented server-side
+						flags: Number(member.user.flags),
+						guildId: member.guild_id,
+						isPending: member.pending,
+						joinedAt: member.joined_at,
+						roles: member.roles || [],
+						user: member.user,
+					});
+
+					// this is disgusting too
 					if (item.member.presence) {
 						const presence = item.member.presence;
 						presenceUpdates.push({
