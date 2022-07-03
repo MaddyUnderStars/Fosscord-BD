@@ -216,13 +216,18 @@ export class Client extends EventTarget {
 	};
 
 	#send = (data: GatewayPayload): void => {
-		if (this.#socket?.readyState !== WebSocket.OPEN) {
-			this.error(`Attempted to send data to closed socket. OP ${data.op}, S ${data.s}`);
-			// this.#onClose(new CloseEvent("close"));
-			return;
-		}
+		// if (this.#socket?.readyState !== WebSocket.OPEN) {
+		// 	this.error(`Attempted to send data to closed socket. OP ${data.op}, S ${data.s}`);
+		// 	// this.#onClose(new CloseEvent("close"));
+		// 	return;
+		// }
 
-		this.#socket?.send(JSON.stringify(data));
+		try {
+			this.#socket?.send(JSON.stringify(data));
+		}
+		catch (e) {
+			this.error(`Send failed for ${data.op}`, e);
+		}
 	};
 
 	stop = () => {
