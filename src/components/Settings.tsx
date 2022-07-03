@@ -23,7 +23,8 @@ interface InstanceProps {
 const InstanceElement: React.FC<InstanceProps> = (props) => {
 	props.showDelete = props.showDelete ?? true;
 	let { instance, setInstance } = props;
-	const [error, setError] = useState<string>();
+	const [apiError, setApiError] = useState<string>();
+	const [tokenError, setTokenError] = useState<string>();
 
 	const openLoginModal = () => {
 		return (
@@ -45,9 +46,9 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 				<TextInput
 					value={instance.apiUrl}
 					placeholder="API URL"
-					error={error}
+					error={apiError}
 					onChange={(value) => {
-						setError(undefined);
+						setApiError(undefined);
 						setInstance({ ...instance, apiUrl: value });
 					}}
 				/>
@@ -59,9 +60,11 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 				<TextInput
 					//@ts-ignore
 					type="password"
+					error={tokenError}
 					value={instance.token}
 					placeholder="Token"
 					onChange={(value) => {
+						setTokenError(undefined);
 						setInstance({ ...instance, token: value });
 					}}
 				/>
@@ -72,17 +75,17 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 					<Button
 						onClick={() => {
 							if (!instance.apiUrl) {
-								return setError("Required");
+								return setApiError("Required");
 							}
 
 							try {
 								new URL(instance.apiUrl);
 							}
 							catch (e) {
-								return setError("Invalid URL");
+								return setApiError("Invalid URL");
 							}
 
-							setError(undefined);
+							setApiError(undefined);
 							ModalActions.openModal(openLoginModal, { modalKey: "fosscord-login" });
 						}}>
 						{"Login with password"}
@@ -94,17 +97,21 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 						style={{ marginLeft: "10px" }}
 						onClick={() => {
 							if (!instance.apiUrl) {
-								return setError("Required");
+								return setApiError("Required");
 							}
 
 							try {
 								new URL(instance.apiUrl);
 							}
 							catch (e) {
-								return setError("Invalid URL");
+								return setApiError("Invalid URL");
 							}
 
-							setError(undefined);
+							if (!instance.token) {
+								return setTokenError("Required");
+							}
+
+							setApiError(undefined);
 							props.onSave(instance);
 						}}
 					>
