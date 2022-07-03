@@ -14,7 +14,7 @@ import LoginModal from "./LoginModal";
 interface InstanceProps {
 	instance: Instance,
 	setInstance: (instance: Instance) => any,
-	onClick: (instance: Instance) => any;
+	onSave: (instance: Instance) => any;
 	onDelete: () => any;
 	resetOnSubmit?: boolean,
 	showDelete?: boolean,
@@ -45,8 +45,9 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 				<TextInput
 					value={instance.apiUrl}
 					placeholder="API URL"
-					error={!instance.apiUrl && error ? error : undefined}
+					error={error}
 					onChange={(value) => {
+						setError(undefined);
 						setInstance({ ...instance, apiUrl: value });
 					}}
 				/>
@@ -73,6 +74,14 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 							if (!instance.apiUrl) {
 								return setError("Required");
 							}
+
+							try {
+								new URL(instance.apiUrl);
+							}
+							catch (e) {
+								return setError("Invalid URL");
+							}
+
 							setError(undefined);
 							ModalActions.openModal(openLoginModal, { modalKey: "fosscord-login" });
 						}}>
@@ -88,12 +97,15 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 								return setError("Required");
 							}
 
+							try {
+								new URL(instance.apiUrl);
+							}
+							catch (e) {
+								return setError("Invalid URL");
+							}
+
 							setError(undefined);
-							props.onClick(instance);
-							setInstance({
-								apiUrl: "",
-								token: "",
-							});
+							props.onSave(instance);
 						}}
 					>
 						{"Save"}
@@ -170,9 +182,10 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 						resetOnSubmit={true}
 						showDelete={false}
 						onDelete={() => { }}
-						onClick={(val) => {
+						onSave={(val) => {
 							val.enabled = true;
 							setInstancesAndSave([...instances, val]);
+							setNewInstance({ apiUrl: "", token: "" });
 						}}
 					/>
 				</Collapsible>
@@ -182,9 +195,18 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 
 			<div className="fosscord-settings-instances">
 				{instances.map((instance: Instance, index: number, array) => {
+					if (!instance.apiUrl) return;	// where is this coming from?
+
+					try {
+						var tempName = new URL(instance.apiUrl!).hostname;
+					}
+					catch (e) {
+						var tempName = "Invalid URL";
+					}
+
 					return (
 						<Collapsible
-							title={instance.info ? instance.info.name! : new URL(instance.apiUrl!).hostname}
+							title={instance.info ? instance.info.name! : tempName}
 							innerStyle={{ padding: "10px" }}
 							additionalComponentsRight={
 								<Switch
@@ -198,8 +220,8 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 						>
 							<InstanceElement
 								instance={instance}
-								setInstance={(val) => { array[index] = val; setInstances([...array]) }}
-								onClick={(edited) => {
+								setInstance={(val) => { array[index] = val; setInstances([...array]); }}
+								onSave={(edited) => {
 									array[index] = edited;
 									setInstancesAndSave([...array]);
 								}}
