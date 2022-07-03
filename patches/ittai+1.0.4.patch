@@ -1,16 +1,3 @@
-diff --git a/node_modules/ittai/entities/GMPlugin.js b/node_modules/ittai/entities/GMPlugin.js
-index d4fd09b..eece344 100644
---- a/node_modules/ittai/entities/GMPlugin.js
-+++ b/node_modules/ittai/entities/GMPlugin.js
-@@ -17,7 +17,7 @@ export default class GMPlugin {
- 			Object.assign(this.__ittaiGMSettings, newSettings);
- 		},
- 		setSetting: (key, value) => {
--			this.__ittaiGMSettings?.[key] = value;
-+			this.__ittaiGMSettings[key] = value;
- 		},
- 		removeSetting: (key, value) => {
- 			delete this.__ittaiGMSettings?.[key]
 diff --git a/node_modules/ittai/entities/Plugin.js b/node_modules/ittai/entities/Plugin.js
 index b109a56..b768ec2 100644
 --- a/node_modules/ittai/entities/Plugin.js
@@ -39,7 +26,7 @@ index 3a4499c..2358a96 100644
  		...args,
  	];
 diff --git a/node_modules/ittai/patcher/patch.js b/node_modules/ittai/patcher/patch.js
-index c64e9e2..1518865 100644
+index 8b1b09c..5f44807 100644
 --- a/node_modules/ittai/patcher/patch.js
 +++ b/node_modules/ittai/patcher/patch.js
 @@ -12,6 +12,8 @@ export default /**
@@ -51,17 +38,12 @@ index c64e9e2..1518865 100644
  	const id = object.__ittai__ ?? randomString(25, Object.keys(patches));
  	object.__ittai__ = object.__ittai__ ?? id;
  	if (!patches[id]) patches[id] = {};
-@@ -51,10 +53,14 @@ export default /**
- 
- 	if (!patches[id][functionName]) {
- 		patches[id][functionName] = {
--			original: { ...object }[functionName],
-+			original: object[functionName],
+@@ -55,6 +57,10 @@ export default /**
  			patches: [],
  		};
  
 +		if (!patches[id][functionName].original) {
-+			throw new Error(`original function ${functionName} lost!`)
++			throw new Error(`original function ${functionName} lost!`);
 +		}
 +
  		const props = { ...object[functionName] };
