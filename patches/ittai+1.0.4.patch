@@ -25,8 +25,44 @@ index 3a4499c..2358a96 100644
  		"color: #000; background-color: #42ffa7; font-family: default; padding-left: 3px; padding-right: 3px; border-radius: 2px; font-weight: bold;",
  		...args,
  	];
+diff --git a/node_modules/ittai/patcher/index.d.ts b/node_modules/ittai/patcher/index.d.ts
+index ff0d174..b9e677d 100644
+--- a/node_modules/ittai/patcher/index.d.ts
++++ b/node_modules/ittai/patcher/index.d.ts
+@@ -1,17 +1,17 @@
+-type GenericPatchFunction = (args: any, thisArg: any) => any
+-type AfterPatchFunction = (args: any, res: any, thisArg: any) => any
++type GenericPatchFunction = (args: any, original: any, thisArg: any) => any;
++type AfterPatchFunction = (args: any, res: any, thisArg: any) => any;
+ 
+ type PatchData = {
+-    name: string
+-    type: string
+-    patchFunction: GenericPatchFunction | AfterPatchFunction
+-    unpatch: () => void
+-}
++	name: string;
++	type: string;
++	patchFunction: GenericPatchFunction | AfterPatchFunction;
++	unpatch: () => void;
++};
+ 
+-export function patch(name: string, object: any, functionName: string, type: "after" | "before" | "instead", patchFunction: GenericPatchFunction | AfterPatchFunction): PatchData
++export function patch(name: string, object: any, functionName: string, type: "after" | "before" | "instead", patchFunction: GenericPatchFunction | AfterPatchFunction): PatchData;
+ 
+-export function after(name: string, object: any, functionName: string, patchFunction: AfterPatchFunction): PatchData
+-export function before(name: string, object: any, functionName: string, patchFunction: GenericPatchFunction): PatchData
+-export function instead(name: string, object: any, functionName: string, patchFunction: GenericPatchFunction): PatchData
++export function after(name: string, object: any, functionName: string, patchFunction: AfterPatchFunction): PatchData;
++export function before(name: string, object: any, functionName: string, patchFunction: GenericPatchFunction): PatchData;
++export function instead(name: string, object: any, functionName: string, patchFunction: GenericPatchFunction): PatchData;
+ 
+-export function unpatchAll(unpatches?: string[]): void
+\ No newline at end of file
++export function unpatchAll(unpatches?: string[]): void;
+\ No newline at end of file
 diff --git a/node_modules/ittai/patcher/patch.js b/node_modules/ittai/patcher/patch.js
-index 8b1b09c..5f44807 100644
+index 8b1b09c..a1c9b04 100644
 --- a/node_modules/ittai/patcher/patch.js
 +++ b/node_modules/ittai/patcher/patch.js
 @@ -12,6 +12,8 @@ export default /**
@@ -66,7 +102,7 @@ index 8b1b09c..5f44807 100644
 -							res,
 -							instead.patchFunction(args, this) ?? {}
 -						)),
-+						(res = instead.patchFunction.call(object, args, functionData.original.bind(this))),
++						(res = instead.patchFunction(args, functionData.original.bind(this), this)),
  							(ranOnce = true);
  					} catch (e) {
  						logger.error(`Error running instead patch ${name}.`, e);

@@ -102,7 +102,7 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 			if (!guild.roles[i].flags)
 				guild.roles[i].flags = "0";
 
-	// return guild;
+	return guild;
 
 	return Object.assign({
 		name: "",
