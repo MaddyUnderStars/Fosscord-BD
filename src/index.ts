@@ -22,11 +22,20 @@ export default class FosscordPlugin extends Plugin {
 
 	// was being incredibly annoying so here we are
 	applySettingsChanges = async (instances: Instance[]) => {
-		this.stop();
-		for (let instance of instances) {
-			if (!instance.enabled) continue;
+		const compareInstance = (left: Instance, right: Instance) => left.token == right.token && left.apiUrl == right.apiUrl;
+		const intersection = (curr: Instance[], prev: Instance[]) => curr.filter(x => !prev.some(y => compareInstance(x, y)));
+		const old = this.clients.map(x => x.instance) as Instance[];
 
-			let client = new Client();
+		for (let instance of intersection(old, instances)) {
+			const index = this.clients.findIndex(x => x.instance?.apiUrl == instance.apiUrl && x.instance?.token == instance.token);
+			this.cleanupClient(this.clients[index]);
+			this.clients.splice(index, 1);
+		}
+
+		for (let instance of intersection(instances, old).filter(x => x.enabled)) {
+			if (!instance) continue;
+			this.log(`Starting instance ${instance.apiUrl}`);
+			const client = new Client();
 			await client.login(instance);
 			this.clients.push(client);
 		}
@@ -53,27 +62,31 @@ export default class FosscordPlugin extends Plugin {
 		}
 	};
 
+	cleanupClient = (client: Client) => {
+		client.stop();
+
+		// cleanup guilds we added
+		for (let [id, guild] of client.guilds) {
+			Dispatcher.dispatch({
+				type: "GUILD_DELETE", guild: { id: id },
+			});
+		}
+
+		// cleanup friends list
+		for (let [id, relationship] of client.relationships) {
+			Dispatcher.dispatch({
+				type: "RELATIONSHIP_REMOVE",
+				relationship: {
+					type: 4,
+					id: id,
+				},
+			});
+		}
+	};
+
 	stop = () => {
 		for (let client of this.clients) {
-			client.stop();
-
-			// cleanup guilds we added
-			for (let [id, guild] of client.guilds) {
-				Dispatcher.dispatch({
-					type: "GUILD_DELETE", guild: { id: id },
-				});
-			}
-
-			// cleanup friends list
-			for (let [id, relationship] of client.relationships) {
-				Dispatcher.dispatch({
-					type: "RELATIONSHIP_REMOVE",
-					relationship: {
-						type: 4,
-						id: id,
-					},
-				})
-			}
+			this.cleanupClient(client);
 		}
 	};
 }

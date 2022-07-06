@@ -144,7 +144,7 @@ const SettingsPage: React.FC<{ onReload: (instances: Instance[]) => any; }> = (p
 	const setInstancesAndSave = async (array: Instance[]) => {
 		setInstances(array);
 		settings.set("instances", array);
-		await props.onReload(array);
+		await props.onReload(array.filter(x => x.enabled));
 	};
 
 	return (
