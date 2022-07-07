@@ -85,8 +85,8 @@ export default class FosscordPlugin extends Plugin {
 	};
 
 	stop = () => {
-		for (let client of this.clients) {
-			this.cleanupClient(client);
+		while (this.clients.length) {
+			this.cleanupClient(this.clients.shift()!);
 		}
 	};
 }
