@@ -20,4 +20,16 @@ export default function (this: FosscordPlugin) {
 			return id == thisArg.ownerId;
 		}
 	);
+
+	// patcher.instead(
+	// 	"fosscord",
+	// 	webpack.findByProps("getGuildPermissions", "can"),
+	// 	"can",
+	// 	(args, original) => {
+	// 		console.log(args);
+	// 		const ret = original(...args);
+	// 		console.log(ret);
+	// 		return ret;
+	// 	}
+	// )
 }
