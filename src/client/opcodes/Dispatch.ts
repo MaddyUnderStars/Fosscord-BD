@@ -1,5 +1,5 @@
 import { OpcodeHandler } from ".";
-import { findIds } from "../../util/Snowflake";
+import { findIds, redirectIds } from "../../util/Snowflake";
 import { ClientEvent } from "../Client";
 import DispatchHandlers from "../dispatch";
 
@@ -8,6 +8,8 @@ const handler: OpcodeHandler = function (payload) {
 
 	for (let id of findIds(payload.d))
 		this.controlledIds.add(id);
+
+	payload.d = redirectIds(payload.d);
 
 	const handler = DispatchHandlers[payload.t!];
 	if (handler) {
