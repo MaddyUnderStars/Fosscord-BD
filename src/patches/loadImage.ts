@@ -17,7 +17,7 @@ export default function (this: FosscordPlugin) {
 			);
 			if (!client) return original(...args);
 
-			url = url.replace("https://cdn.discordapp.com", client.instance?.cdnUrl!);
+			url = url.replace(GLOBAL_ENV.CDN_HOST, client.instance?.cdnUrl!);
 			return original(url, callback);
 		}
 	);

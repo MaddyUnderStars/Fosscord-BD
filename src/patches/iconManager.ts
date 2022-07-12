@@ -19,7 +19,7 @@ export default function (this: FosscordPlugin) {
 			originalRet = parsed.toString();
 		}
 
-		return originalRet.replace("https://cdn.discordapp.com", client.instance?.cdnUrl);
+		return originalRet.replace(GLOBAL_ENV.CDN_HOST, client.instance?.cdnUrl);
 	};
 
 
@@ -69,7 +69,7 @@ export default function (this: FosscordPlugin) {
 			const client = this.findControllingClient(findIds(user));
 			if (!client) return original(...args);
 
-			return `${client.instance?.cdnUrl}/banners/${user.id}/${user.banner}?size=${size}`;
+			return `${location.protocol}//${client.instance?.cdnUrl}/banners/${user.id}/${user.banner}?size=${size}`;
 		}
 	);
 
@@ -82,7 +82,22 @@ export default function (this: FosscordPlugin) {
 			const client = this.findControllingClient([args[0], ...findIds(ret.split("/"))]);
 			if (!client) return ret;
 
-			return ret.replace("https://cdn.discordapp.com", client.instance!.cdnUrl);
+			return ret.replace(GLOBAL_ENV.CDN_HOST, client.instance!.cdnUrl);
 		}
 	);
+
+	patcher.instead(
+		"fosscord",
+		webpack.findByProps("getStickerAssetUrl"),
+		"getStickerAssetUrl",
+		(args, original) => {
+			const ret: any = original(...args);
+			const client = this.findControllingClient(args[0].guild_id);
+			if (!client) return ret;
+
+			// why are there slashes in this???
+			const media_proxy_endpoint = GLOBAL_ENV.MEDIA_PROXY_ENDPOINT.split("/").join("");
+			return ret.replace(media_proxy_endpoint, client.instance!.cdnUrl);
+		}
+	)
 }
