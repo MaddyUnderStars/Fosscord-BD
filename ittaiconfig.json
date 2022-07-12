@@ -1,4 +1,17 @@
 {
 	"output": "./build",
-	"customClassNames": "[local]"
+	"customClassNames": "[local]",
+	"manifest": {
+		"name": "Fosscord",
+		"version": "1.0.0",
+		"license": "AGPLV3",
+		"source": "https://github.com/maddyunderstars/fosscord-bd",
+		"updateUrl": "",
+		"main": "src/index.ts",
+		"author": "MaddyUnderStars",
+		"description": "Allows connections to Fosscord instances",
+		"permissions": [
+			"ext_api"
+		]
+	}
 }
