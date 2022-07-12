@@ -1,4 +1,4 @@
-import { logger, settings } from "ittai";
+import { logger, settings, webpack } from "ittai";
 import { Channel } from "../entities/Channel";
 import { Guild } from "../entities/Guild";
 import Instance from "../entities/Instance";
@@ -9,6 +9,10 @@ import { ExtendedSet } from "../util/Structures";
 import { HttpClient } from "./HttpClient";
 import OpcodeHandlers from "./opcodes";
 import { Collection } from "@discordjs/collection";
+
+const { getSuperProperties } = webpack.findByProps("getSuperProperties");
+const { getLocalPresence } = webpack.findByProps("getLocalPresence");
+// const capabilities = webpack.findByIndex(604778).default;	// method doesn't exist in Ittai yet
 
 export interface GatewayPayload {
 	op: number;
@@ -182,18 +186,24 @@ export class Client extends EventTarget {
 	};
 
 	#identity = () => {
+		const presence = getLocalPresence();
+		if (presence.activities) {
+			for (var activity of presence.activities) {
+				// Fosscord doesn't have Spotify integration, and doesn't allow these in IDENTIFY schema
+				delete activity.metadata;
+				delete activity.sync_id;
+				
+				activity.flags = "" + activity.flags; // fosscord assumes this is string
+			}
+		}
 		this.#send({
 			op: GatewayOpcode.Identify,
 			d: {
 				token: this.instance?.token,
 				capabilities: 509,
 				compress: false,
-				presence: { status: "online", since: 0, activities: [], afk: false },
-				// properties: {
-				// 	"$os": "Windows",
-				// 	"$browser": "test client",
-				// 	"$device": "test client",
-				// }
+				presence: presence,
+				properties: getSuperProperties(),
 			}
 		});
 	};
