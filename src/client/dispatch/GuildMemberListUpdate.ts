@@ -30,17 +30,17 @@ const handler: DispatchHandler = function (payload) {
 	}
 
 	Dispatcher.dispatch({
+		type: "PRESENCE_UPDATES",
+		updates: presenceUpdates
+	});
+
+	Dispatcher.dispatch({
 		type: "GUILD_MEMBER_LIST_UPDATE",
 		groups: data.groups,
 		guildId: data.guild_id,
 		id: data.id,
 		memberCount: data.member_count,
 		ops: data.ops,
-	});
-
-	Dispatcher.dispatch({
-		type: "PRESENCE_UPDATES",
-		updates: presenceUpdates
 	});
 };
 
