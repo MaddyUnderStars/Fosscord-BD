@@ -1,19 +1,14 @@
 import { React } from "ittai/webpack"
 
+import "./styles/NamedElement.css"
+
 interface NamedElementProps {
 	name: string;
 }
 
 const NamedElement: React.FC<React.PropsWithChildren<NamedElementProps>> = (props) => {
 	return (
-		<div
-			style={{
-				display: "flex",
-				justifyContent: "space-between",
-				alignItems: "center"
-			}}
-			className="fosscord-namedSwitch"
-		>
+		<div className="fosscord-namedElement">
 			<div>{props.name}</div>
 			<div>
 				{props.children}
