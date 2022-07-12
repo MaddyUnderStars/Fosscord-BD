@@ -13,15 +13,19 @@ const handler: DispatchHandler = function (payload) {
 	for (let guild of payload.d.guilds) {
 		this.guilds.set(guild.id, makeGuild(guild, this) as any);
 		this.controlledIds.add(guild.id);
-	}
-
-	this.channels = new Collection();
-	for (let [id, guild] of this.guilds) {
-		for (let channel of guild.channels) {
-			this.channels.set(channel.id, makeChannel(channel, this) as any);
+		for (var channel of guild.channels) {
 			this.controlledIds.add(channel.id);
 		}
 	}
+
+	// this.channels = new Collection();
+	// for (let [id, guild] of this.guilds) {
+	// 	for (let channel of guild.channels) {
+	// 		console.log(channel);
+	// 		this.channels.set(channel.id, makeChannel(channel, this) as any);
+	// 		this.controlledIds.add(channel.id);
+	// 	}
+	// }
 
 	for (var relationship of payload.d.relationships as Relationship[] || []) {
 		Dispatcher.dispatch({

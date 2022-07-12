@@ -72,8 +72,10 @@ export const makeGuild = (guild: Partial<Guild>, client: Client): EventGuild => 
 	// guild = new guildInternal(guild);
 
 	if (guild.channels)
-		for (var i in guild.channels)
-			guild.channels[i] = makeChannel(guild.channels[i], client) as Channel;	// TODO: this type is wrong
+		for (var i in guild.channels) {
+			if (guild.channels[i].id) //huh?
+				guild.channels[i] = makeChannel(guild.channels[i], client) as Channel;	// TODO: this type is wrong
+		}
 	else guild.channels = [];
 
 	if (!guild.members) {
