@@ -82,7 +82,6 @@ export default function (this: FosscordPlugin) {
 
 			switch (event.type) {
 				case "CHANNEL_LOCAL_ACK":
-				case "TYPING_START_LOCAL":
 				case "TRACK":
 					client.debug(`Preventing ${event.type}`);
 					return;
@@ -129,6 +128,19 @@ export default function (this: FosscordPlugin) {
 					// client.sendLazyRequest(event.guildId, channel, []);
 					// }
 					return;
+
+				case "TYPING_START_LOCAL":
+					HttpClient.send({
+						method: "POST",
+						path: `${client.instance!.apiUrl}/channels/${event.channelId}/typing`,
+						client: client,
+					})
+					return;			
+
+				case "TYPING_START":
+					if (event.userId == client.user!.id) return;
+					break;
+				
 				/*
 					TODO: Handle
 					* GUILD_MEMBER_LIST_UPDATE,				// lazy guilds, has `ops` prop though not sure how to handle that
