@@ -84,9 +84,14 @@ export default class FosscordPlugin extends Plugin {
 		}
 	};
 
-	stop = () => {
+	stop = async () => {
 		while (this.clients.length) {
 			this.cleanupClient(this.clients.shift()!);
 		}
+
+		// if the passwordCrashFix patch is disabled before GUILD_DELETE is handled
+		// the client will crash
+		// not sure why this experiment breaks, it throws https://reactjs.org/docs/error-decoder.html/?invariant=311
+		await new Promise((resolve) => { setInterval(resolve, 1000); });
 	};
 }
