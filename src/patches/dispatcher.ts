@@ -81,7 +81,6 @@ export default function (this: FosscordPlugin) {
 			}
 
 			switch (event.type) {
-				case "CHANNEL_LOCAL_ACK":
 				case "TRACK":
 					client.debug(`Preventing ${event.type}`);
 					return;
