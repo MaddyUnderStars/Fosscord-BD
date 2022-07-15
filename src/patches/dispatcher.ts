@@ -129,12 +129,7 @@ export default function (this: FosscordPlugin) {
 					return;
 
 				case "TYPING_START_LOCAL":
-					HttpClient.send({
-						method: "POST",
-						path: `${client.instance!.apiUrl}/channels/${event.channelId}/typing`,
-						client: client,
-					})
-					return;			
+					return client.startTyping(event.channelId);
 
 				case "TYPING_START":
 					if (event.userId == client.user!.id) return;

@@ -264,4 +264,16 @@ export class Client extends EventTarget {
 			}
 		});
 	};
+
+	lastTypingStart = 0;
+	typingCooldown = 10 * 1000;	// 10 seconds between each call. same behaviour as discord client
+	startTyping = (channelId: string) => {
+		if (Date.now() < this.lastTypingStart + this.typingCooldown) return;
+		this.lastTypingStart = Date.now()
+		HttpClient.send({
+			method: "POST",
+			path: `${this.instance!.apiUrl}/channels/${channelId}/typing`,
+			client: this,
+		})
+	}
 }
