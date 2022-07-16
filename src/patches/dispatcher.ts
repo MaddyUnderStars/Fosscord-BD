@@ -134,7 +134,7 @@ export default function (this: FosscordPlugin) {
 
 				case "TYPING_START":
 					if (event.userId == client.user!.id) return;
-					break;
+					return original(event);
 				
 				/*
 					TODO: Handle
