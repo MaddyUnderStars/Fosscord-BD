@@ -82,6 +82,7 @@ export default function (this: FosscordPlugin) {
 
 			switch (event.type) {
 				case "TRACK":
+				case "GUILD_MEMBERS_REQUEST":	// TODO
 					client.debug(`Preventing ${event.type}`);
 					return;
 
@@ -113,8 +114,13 @@ export default function (this: FosscordPlugin) {
 
 				case "USER_PROFILE_FETCH_SUCCESS":
 					event.connected_accounts = event.connected_accounts ?? [];
-					event.guild_member = event.guild_member ?? { joined_at: null, premium_since: event.premium_since };			// TODO: Fosscord doesn't send this
-					// event.guild_member.roles = event.guild_member.roles ?? []	// TODO: How can I fetch our roles? fosscord doesn't send them ^
+					// this PR isn't merged yet
+					event.guild_member = event.guild_member ?? { joined_at: null, premium_since: event.premium_since };
+					event.guild_member.roles = event.guild_member.roles ?? []
+
+					const guild_id = window.location.pathname.split("/")[2]; // actually disgusting. can't get it elsewhere tho
+					Dispatcher.dispatch({ type: "GUILD_MEMBER_PROFILE_UPDATE", guildId: guild_id, guildMember: event.guild_member });
+
 					break;
 
 				case "GUILD_SUBSCRIPTIONS_CHANNEL": // lazy guild member request op 14
