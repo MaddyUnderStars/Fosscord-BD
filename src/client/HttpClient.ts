@@ -47,16 +47,16 @@ export class HttpClient {
 		};
 		if (client) headers["Authorization"] = client!.instance!.token;
 
-
 		const tryFetch = async () => {
 			try {
+				console.log(path);
 				return await fetch(
 					path,
 					{
 						method: method.toUpperCase(),
 						headers: headers,
 						body: body ? JSON.stringify(body) : undefined,
-						cache: "no-cache",
+						cache: path.indexOf("/api") == -1 ? 'no-cache' : 'force-cache',
 					}
 				);
 			}
