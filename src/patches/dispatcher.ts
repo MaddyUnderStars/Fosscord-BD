@@ -83,6 +83,7 @@ export default function (this: FosscordPlugin) {
 			switch (event.type) {
 				case "TRACK":
 				case "GUILD_MEMBERS_REQUEST":	// TODO
+				case "APPLICATION_SUBSCRIPTIONS_FETCH_ENTITLEMENTS": // not implemented serverside
 					client.debug(`Preventing ${event.type}`);
 					return;
 
