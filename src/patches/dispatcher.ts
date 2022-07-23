@@ -109,6 +109,7 @@ export default function (this: FosscordPlugin) {
 
 				case "MESSAGE_CREATE":
 					if (!event.optimistic) break;
+
 					event.message.author = makeUser(client.user!, client);
 					client.lastTypingStart = 0;
 					break;
