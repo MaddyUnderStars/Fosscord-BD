@@ -54,6 +54,7 @@ export class HttpClient {
 					{
 						method: method.toUpperCase(),
 						headers: headers,
+						mode: "cors",
 						body: body ? JSON.stringify(body) : undefined,
 						cache: path.indexOf("/api") !== -1 ? "no-store" : 'force-cache',
 					}
