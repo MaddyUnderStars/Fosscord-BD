@@ -2,10 +2,12 @@
 	"dependencies": {
 		"@discordjs/collection": "^0.7.0",
 		"@ittai/builder": "^1.2.6",
-		"@types/react": "^18.0.14",
-		"@types/webpack-env": "^1.17.0",
-		"ittai": "^1.0.5",
+		"ittai": "1.0.5",
 		"patch-package": "^6.4.7"
+	},
+	"devDependencies": {
+		"@types/react": "^18.0.14",
+		"@types/webpack-env": "^1.17.0"
 	},
 	"name": "fosscord-bd",
 	"version": "1.0.0",
