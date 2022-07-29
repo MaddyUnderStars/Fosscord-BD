@@ -1,6 +1,6 @@
 import { Dispatcher } from "ittai/webpack";
 import { DispatchHandler } from ".";
-import { makeGuild } from "../../entities/Guild";
+import { makeGuild } from "../../util/Builders";
 
 const handler: DispatchHandler = function(payload) {
 	Dispatcher.dispatch({

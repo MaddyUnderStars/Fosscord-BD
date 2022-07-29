@@ -2,7 +2,6 @@ import { ModalActions, React } from "ittai/webpack";
 const { useState } = React;
 import { Button, Flex, TextInput, Forms, Switch } from "ittai/components";
 import * as settings from "ittai/settings";
-import Instance from "../entities/Instance";
 
 import Collapsible from "./Collapsible";
 

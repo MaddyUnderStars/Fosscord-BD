@@ -1,7 +1,6 @@
 import { Button, Forms, Modal, TextInput } from "ittai/components";
 import { ModalActions, React } from "ittai/webpack";
 import { HttpClient } from "../client/HttpClient";
-import Instance from "../entities/Instance";
 const { useState } = React;
 
 const login = async (instance: Instance, username: string, password: string): Promise<string> => {

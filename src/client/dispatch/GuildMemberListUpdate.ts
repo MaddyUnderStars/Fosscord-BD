@@ -1,6 +1,6 @@
 import { Dispatcher } from "ittai/webpack";
 import { DispatchHandler } from ".";
-import { makeUser } from "../../entities/User";
+import { makeUser } from "../../util/Builders";
 
 const handler: DispatchHandler = function (payload) {
 	const data = payload.d;

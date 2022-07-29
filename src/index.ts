@@ -3,7 +3,6 @@ import SettingsPage from "./components/Settings";
 import * as settings from "ittai/settings";
 
 import { Client } from "./client/Client";
-import Instance from "./entities/Instance";
 import { Dispatcher } from "ittai/webpack";
 
 import { React } from "ittai/webpack";

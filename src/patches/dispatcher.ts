@@ -2,7 +2,7 @@ import { patcher } from "ittai";
 import { Dispatcher } from "ittai/webpack";
 import FosscordPlugin from "..";
 import { HttpClient } from "../client/HttpClient";
-import { makeUser } from "../entities/User";
+import { makeUser } from "../util/Builders";
 import { findIds } from "../util/Snowflake";
 
 export default function (this: FosscordPlugin) {
