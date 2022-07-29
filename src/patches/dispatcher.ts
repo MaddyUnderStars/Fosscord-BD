@@ -42,6 +42,7 @@ export default function (this: FosscordPlugin) {
 				case "GUILD_SUBSCRIPTIONS_MEMBERS_ADD":
 				case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
 				case "PRESENCE_UPDATES":
+				case "CHANNEL_SELECT":
 					return original(...args);
 			}
 
@@ -84,26 +85,26 @@ export default function (this: FosscordPlugin) {
 				case "TRACK":
 				case "GUILD_MEMBERS_REQUEST":	// TODO
 				case "APPLICATION_SUBSCRIPTIONS_FETCH_ENTITLEMENTS": // not implemented serverside
+				case "APPLICATION_SUBSCRIPTIONS_FETCH_ENTITLEMENTS_SUCCESS":
 					client.debug(`Preventing ${event.type}`);
 					return;
 
-				case "CHANNEL_SELECT":
-					if (event.channelId) return original(...args);
-					const guildId = event.guildId;
-					const guild = client.guilds?.get(guildId);
-					if (guild) {
-						client.debug(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`);
-						return original({
-							...event,
-							channelId: guild.channels[0].id,
-						});
-					}
-					break;
+				// case "CHANNEL_SELECT":
+				// 	if (event.channelId) return original(...args);
+				// 	const guildId = event.guildId;
+				// 	const guild = client.guilds?.get(guildId);
+				// 	if (guild) {
+				// 		client.debug(`Redirecting CHANNEL_SELECT for ${guildId} with null channel to default channel`);
+				// 		return original({
+				// 			...event,
+				// 			channelId: guild.channels[0].id,
+				// 		});
+				// 	}
+				// 	break;
 				case "GUILD_MEMBER_PROFILE_UPDATE":
-					if (!event.guildMember || !event.guildMember.user || !event.guildMember.id) {
-						if (event.guildMember && event.user) event.guildMember.user = event.user;
-						else return;
-						break;
+					if (!event?.user?.id) {
+						event.user = event?.guildMember?.user;
+						if (!event?.user?.id) return;
 					}
 					return original(event);
 
@@ -118,7 +119,7 @@ export default function (this: FosscordPlugin) {
 					event.connected_accounts = event.connected_accounts ?? [];
 					// this PR isn't merged yet
 					event.guild_member = event.guild_member ?? { joined_at: null, premium_since: event.premium_since };
-					event.guild_member.roles = event.guild_member.roles ?? []
+					event.guild_member.roles = event.guild_member.roles ?? [];
 
 					const guild_id = window.location.pathname.split("/")[2]; // actually disgusting. can't get it elsewhere tho
 					Dispatcher.dispatch({ type: "GUILD_MEMBER_PROFILE_UPDATE", guildId: guild_id, guildMember: event.guild_member });
@@ -143,7 +144,7 @@ export default function (this: FosscordPlugin) {
 				case "TYPING_START":
 					if (event.userId == client.user!.id) return;
 					return original(event);
-				
+
 				/*
 					TODO: Handle
 					* GUILD_MEMBER_LIST_UPDATE,				// lazy guilds, has `ops` prop though not sure how to handle that
