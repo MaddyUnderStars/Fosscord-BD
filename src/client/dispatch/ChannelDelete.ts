@@ -1,6 +1,6 @@
 import { Dispatcher } from "ittai/webpack";
 import { DispatchHandler } from ".";
-import { makeChannel } from "../../entities/Channel";
+import { makeChannel } from "../../util/Builders";
 
 const handler: DispatchHandler = function (payload) {
 	Dispatcher.dispatch({

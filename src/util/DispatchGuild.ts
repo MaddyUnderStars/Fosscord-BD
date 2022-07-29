@@ -1,6 +1,6 @@
 import { Dispatcher } from "ittai/webpack";
 import { Client } from "../client/Client";
-import { Guild, makeGuild } from "../entities/Guild";
+import { makeGuild } from "../util/Builders";
 
 export default (guild: Guild, client: Client) => {
 	guild = makeGuild(guild, client) as Guild;

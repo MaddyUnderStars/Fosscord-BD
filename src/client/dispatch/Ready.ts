@@ -1,9 +1,6 @@
 import { Dispatcher } from "ittai/webpack";
 import { DispatchHandler } from ".";
-import { makeChannel } from "../../entities/Channel";
-import { makeGuild } from "../../entities/Guild";
-import Relationship from "../../entities/Relationship";
-import User, { makeUser } from "../../entities/User";
+import { makeUser, makeGuild } from "../../util/Builders";
 import DispatchGuild from "../../util/DispatchGuild";
 import { Collection } from "@discordjs/collection";
 

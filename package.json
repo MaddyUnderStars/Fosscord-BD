@@ -14,8 +14,8 @@
 		"postinstall": "patch-package",
 		"build": "ittai --distOutput=\"./build\" --betterdiscord",
 		"release": "ittai --distOutput=\"./build\" --betterdiscord --production",
-		"build:bd": "ittai --distOutput=\"./build\" --betterdiscord=\"%appdata%/BetterDiscord/plugins\"",
-		"release:bd": "ittai --distOutput=\"./build\" --betterdiscord=\"%appdata%/BetterDiscord/plugins\" --production"
+		"build:bd": "ittai --distOutput=\"./build\" --betterdiscord=\"~/.config/BetterDiscord/plugins\"",
+		"release:bd": "ittai --distOutput=\"./build\" --betterdiscord=\"~/.config/BetterDiscord/plugins\" --production"
 	},
 	"author": "MaddyUnderStars",
 	"license": "AGPLV3",

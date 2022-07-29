@@ -1,9 +1,4 @@
 import { logger, settings, webpack } from "ittai";
-import { Channel } from "../entities/Channel";
-import { Guild } from "../entities/Guild";
-import Instance from "../entities/Instance";
-import Relationship from "../entities/Relationship";
-import User from "../entities/User";
 import recursiveDelete from "../util/RecursivelyDelete";
 import { ExtendedSet } from "../util/Structures";
 import { HttpClient } from "./HttpClient";

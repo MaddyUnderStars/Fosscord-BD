@@ -1,4 +1,4 @@
-import { Client, GatewayOpcode, GatewayPayload } from "../Client";
+import { Client, GatewayPayload } from "../Client";
 
 export type OpcodeHandler = (this: Client, payload: GatewayPayload) => any;
 
