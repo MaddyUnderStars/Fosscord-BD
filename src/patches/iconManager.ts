@@ -30,6 +30,7 @@ export default function (this: FosscordPlugin) {
 		"getGuildIconURL",
 		"getEmojiURL",
 		"getGuildBannerURL",
+		"getUserBannerURL",
 	]) {
 		if (!iconManager[method]) continue;	// just in case
 		patcher.instead(
@@ -48,7 +49,8 @@ export default function (this: FosscordPlugin) {
 			"getGuildIconURL",
 			"getGuildBannerURL",
 			"getUserAvatarURL",
-			"getEmojiURL"
+			"getEmojiURL",
+			"getUserBannerURL",
 		]) {
 			if (!iconManager.default[method]) continue;	// just in case
 			patcher.instead(
