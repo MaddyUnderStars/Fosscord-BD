@@ -1,5 +1,5 @@
 import { webpack } from "ittai";
-import { Dispatcher } from "ittai/webpack";
+const { Dispatcher } = webpack;
 import { DispatchHandler } from ".";
 
 const MessageStore = webpack.findByProps("getMessage", "getRawMessages", "getLastEditableMessage");

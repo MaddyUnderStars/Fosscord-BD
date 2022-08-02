@@ -1,6 +1,7 @@
 // Note: Handles both session and presence updates
 
-import { Dispatcher } from "ittai/webpack";
+import { webpack } from "ittai";
+const { Dispatcher } = webpack;
 import { DispatchHandler } from ".";
 
 const handler: DispatchHandler = function (payload) {

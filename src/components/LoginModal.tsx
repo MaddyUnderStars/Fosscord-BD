@@ -1,7 +1,8 @@
-import { Button, Forms, Modal, TextInput } from "ittai/components";
-import { ModalActions, React } from "ittai/webpack";
-import { HttpClient } from "../client/HttpClient";
+import { webpack, components } from "ittai";
+const {  ModalActions, React  } = webpack;
+const { Button, Forms, Modal, TextInput } = components;
 const { useState } = React;
+import { HttpClient } from "../client/HttpClient";
 
 const login = async (instance: Instance, username: string, password: string): Promise<string> => {
 	const ret = await HttpClient.send({

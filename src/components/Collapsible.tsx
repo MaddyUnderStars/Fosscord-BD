@@ -1,6 +1,8 @@
-import { React } from "ittai/webpack"
+import { webpack } from "ittai";
+const { React } = webpack;
 const { useState } = React;
-import { Button, Forms } from "ittai/components";
+import { components } from "ittai";
+const { Button, Forms } = components;
 
 import "./styles/Collapsible.css"
 

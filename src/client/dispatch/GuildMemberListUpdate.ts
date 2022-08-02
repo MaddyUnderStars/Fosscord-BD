@@ -1,4 +1,5 @@
-import { Dispatcher } from "ittai/webpack";
+import { webpack } from "ittai";
+const { Dispatcher } = webpack;
 import { DispatchHandler } from ".";
 import { makeUser } from "../../util/Builders";
 

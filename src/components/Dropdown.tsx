@@ -1,4 +1,5 @@
-import { React } from "ittai/webpack";
+import { webpack } from "ittai";
+const { React } = webpack;
 
 import "./styles/Dropdown.css"
 
