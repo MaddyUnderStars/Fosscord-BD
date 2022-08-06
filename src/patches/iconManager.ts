@@ -24,14 +24,17 @@ export default function (this: FosscordPlugin) {
 
 
 	let iconManager = webpack.findByProps("getUserAvatarURL", "hasAnimatedGuildIcon");
-	for (let method of [
+	const iconManagerMethods = [
 		"getUserAvatarURL",
 		"getGuildMemberAvatarURLSimple",
 		"getGuildIconURL",
 		"getEmojiURL",
 		"getGuildBannerURL",
 		"getUserBannerURL",
-	]) {
+		"getGuildMemberBannerURL",
+	]
+
+	for (let method of iconManagerMethods) {
 		if (!iconManager[method]) continue;	// just in case
 		patcher.instead(
 			"fosscord",
@@ -44,14 +47,7 @@ export default function (this: FosscordPlugin) {
 	// I can't remember if this is also available in Powercord
 	// It should but idk
 	if (iconManager.default) {
-		for (let method of [
-			"getGuildMemberAvatarURLSimple",
-			"getGuildIconURL",
-			"getGuildBannerURL",
-			"getUserAvatarURL",
-			"getEmojiURL",
-			"getUserBannerURL",
-		]) {
+		for (let method of iconManagerMethods) {
 			if (!iconManager.default[method]) continue;	// just in case
 			patcher.instead(
 				"fosscord",
@@ -62,18 +58,18 @@ export default function (this: FosscordPlugin) {
 		}
 	}
 
-	patcher.instead(
-		"fosscord",
-		webpack.findByProps("getUserBannerURLForContext"),
-		"getUserBannerURLForContext",
-		(args: any[], original: any) => {
-			const { user, guildMember, size } = args[0];
-			const client = this.findControllingClient(findIds(user));
-			if (!client) return original(...args);
+	// patcher.instead(
+	// 	"fosscord",
+	// 	webpack.findByPrototype("getGuildMemberBannerURL"),
+	// 	"getBannerURL",
+	// 	(args: any[], original: any) => {
+	// 		const { user, guildMember, size } = args[0];
+	// 		const client = this.findControllingClient(findIds(user));
+	// 		if (!client) return original(...args);
 
-			return `${location.protocol}//${client.instance?.cdnUrl}/banners/${user.id}/${user.banner}?size=${size}`;
-		}
-	);
+	// 		return `${location.protocol}//${client.instance?.cdnUrl}/banners/${user.id}/${user.banner}?size=${size}`;
+	// 	}
+	// );
 
 	patcher.instead(
 		"fosscord",
