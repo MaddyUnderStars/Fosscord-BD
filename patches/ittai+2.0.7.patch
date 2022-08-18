@@ -1,18 +1,18 @@
 diff --git a/node_modules/ittai/entities/Plugin.js b/node_modules/ittai/entities/Plugin.js
-index 568bb7b..0aa35bc 100644
+index 91a42d0..61c7d49 100644
 --- a/node_modules/ittai/entities/Plugin.js
 +++ b/node_modules/ittai/entities/Plugin.js
-@@ -78,6 +78,10 @@ export default /**
- 			hasSettingsPanel = false;
- 			cachedCss = [];
+@@ -12,6 +12,10 @@ export default /**
+ 	start() {}
+ 	stop() {}
  
-+			load() {
-+				if (this.load) this.instance.load();
-+			}
++	load() {
++		if (this.load) this.instance.load();
++	}
 +
- 			start() {
- 				try {
- 					this.cachedCss.forEach((e, k) => {
+ 	setSettingsPanel(component) {
+ 		this.__ittaiInternalPlugin.setSettingsPanel(component);
+ 	}
 diff --git a/node_modules/ittai/logger/createArguments.js b/node_modules/ittai/logger/createArguments.js
 index 3a4499c..2358a96 100644
 --- a/node_modules/ittai/logger/createArguments.js
@@ -26,31 +26,29 @@ index 3a4499c..2358a96 100644
  		...args,
  	];
 diff --git a/node_modules/ittai/patcher/index.d.ts b/node_modules/ittai/patcher/index.d.ts
-index ff0d174..83c8535 100644
+index c798e3f..d6576b9 100644
 --- a/node_modules/ittai/patcher/index.d.ts
 +++ b/node_modules/ittai/patcher/index.d.ts
 @@ -1,5 +1,5 @@
--type GenericPatchFunction = (args: any, thisArg: any) => any
--type AfterPatchFunction = (args: any, res: any, thisArg: any) => any
-+type GenericPatchFunction = (args: any, original: any, thisArg: any) => any;
-+type AfterPatchFunction = (args: any, res: any, thisArg: any) => any;
+ type BeforePatchFunction = (args: any, thisArg: any) => any
+-type InsteadPatchFunction = (args: any, thisArg: any, ogFunc: Function) => any
++type InsteadPatchFunction = (args: any, original: any, thisArg: any) => any;
+ type AfterPatchFunction = (args: any, res: any, thisArg: any) => any
  
  type PatchData = {
-     name: string
 diff --git a/node_modules/ittai/patcher/patch.js b/node_modules/ittai/patcher/patch.js
-index 8b1b09c..99a59e2 100644
+index e67c968..0d556bf 100644
 --- a/node_modules/ittai/patcher/patch.js
 +++ b/node_modules/ittai/patcher/patch.js
-@@ -12,6 +12,8 @@ export default /**
+@@ -12,6 +12,7 @@ export default /**
   * @memberof module:patcher
   * @tutorial patching
   */ function patch(name, object, functionName, type, patchFunction) {
 +	if (!object) throw new Error("Cannot patch nothing!");
-+
  	const id = object.__ittai__ ?? randomString(25, Object.keys(patches));
  	object.__ittai__ = object.__ittai__ ?? id;
  	if (!patches[id]) patches[id] = {};
-@@ -55,6 +57,10 @@ export default /**
+@@ -55,6 +56,10 @@ export default /**
  			patches: [],
  		};
  
@@ -61,24 +59,15 @@ index 8b1b09c..99a59e2 100644
  		const props = { ...object[functionName] };
  
  		object[functionName] = function (...args) {
-@@ -83,10 +89,7 @@ export default /**
+@@ -83,10 +88,7 @@ export default /**
  				for (const instead of insteads) {
  					// Do trash merge with Lodash.
  					try {
 -						(res = globalThis._.merge(
 -							res,
--							instead.patchFunction(args, this) ?? {}
+-							instead.patchFunction(args, this, functionData.original) ?? {}
 -						)),
 +						(res = instead.patchFunction(args, functionData.original.bind(this), this)),
  							(ranOnce = true);
  					} catch (e) {
  						logger.error(`Error running instead patch ${name}.`, e);
-@@ -100,7 +103,7 @@ export default /**
- 			// After patches.
- 			for (const after of afters) {
- 				try {
--					const callback = after.patchFunction(args, res, this)
-+					const callback = after.patchFunction(args, res, this);
- 					if (callback) res = callback
- 				} catch (e) {
- 					logger.error(`Error running after patch ${name}.`, e);

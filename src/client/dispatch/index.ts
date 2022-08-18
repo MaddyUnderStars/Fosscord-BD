@@ -2,23 +2,38 @@ import { Client, GatewayPayload } from "../Client";
 
 export type DispatchHandler = (this: Client, payload: GatewayPayload) => any;
 
-const handlers: { [key: string]: DispatchHandler; } = {
-	"READY": require("./Ready").default,
-	"MESSAGE_CREATE": require("./MessageCreate").default,
-	"MESSAGE_UPDATE": require("./MessageUpdate").default,
-	"GUILD_CREATE": require("./GuildCreate").default,
-	"GUILD_DELETE": require("./GuildDelete").default,
-	"GUILD_UPDATE": require("./GuildUpdate").default,
-	"CHANNEL_CREATE": require("./ChannelCreate").default,
-	"CHANNEL_DELETE": require("./ChannelDelete").default,
-	"USER_NOTE_UPDATE": require("./UserNoteUpdate").default,
-	"GUILD_MEMBER_LIST_UPDATE": require("./GuildMemberListUpdate").default,
-	"GUILD_MEMBER_UPDATE": require("./GuildMemberUpdate").default,
-	"RELATIONSHIP_REMOVE": require("./RelationshipRemove").default,
-	"TYPING_START": require("./TypingStart").default,
+import Ready from "./Ready";
+import MessageCreate from "./MessageCreate";
+import MessageUpdate from "./MessageUpdate";
+import GuildCreate from "./GuildCreate";
+import GuildDelete from "./GuildDelete";
+import GuildUpdate from "./GuildUpdate";
+import ChannelCreate from "./ChannelCreate";
+import ChannelDelete from "./ChannelDelete";
+import UserNoteUpdate from "./UserNoteUpdate";
+import GuildMemberListUpdate from "./GuildMemberListUpdate";
+import GuildMemberUpdate from "./GuildMemberUpdate";
+import RelationshipRemove from "./RelationshipRemove";
+import TypingStart from "./TypingStart";
+import SessionPresenceUpdate from "./SessionPresenceUpdate";;
 
-	"PRESENCE_UPDATE": require("./SessionPresenceUpdate").default,
-	"SESSIONS_REPLACE": require("./SessionPresenceUpdate").default,
+const handlers: { [key: string]: DispatchHandler; } = {
+	"READY": Ready,
+	"MESSAGE_CREATE": MessageCreate,
+	"MESSAGE_UPDATE": MessageUpdate,
+	"GUILD_CREATE": GuildCreate,
+	"GUILD_DELETE": GuildDelete,
+	"GUILD_UPDATE": GuildUpdate,
+	"CHANNEL_CREATE": ChannelCreate,
+	"CHANNEL_DELETE": ChannelDelete,
+	"USER_NOTE_UPDATE": UserNoteUpdate,
+	"GUILD_MEMBER_LIST_UPDATE": GuildMemberListUpdate,
+	"GUILD_MEMBER_UPDATE": GuildMemberUpdate,
+	"RELATIONSHIP_REMOVE": RelationshipRemove,
+	"TYPING_START": TypingStart,
+
+	"PRESENCE_UPDATE": SessionPresenceUpdate,
+	"SESSIONS_REPLACE": SessionPresenceUpdate,
 };
 
 export default handlers;

@@ -13,5 +13,17 @@
 		"permissions": [
 			"ext_api"
 		]
+	},
+	"changelog": {
+		"contents": {
+			"Do thing": {
+				"type": "added",
+				"items": [
+					"yoooo",
+					"yooo 2",
+					"hlelelelel"
+				]
+			}
+		}
 	}
 }
