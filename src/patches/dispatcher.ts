@@ -112,7 +112,7 @@ export default function (this: FosscordPlugin) {
 					if (!event.optimistic) break;
 
 					event.message.author = makeUser(client.user!, client);
-					client.lastTypingStart = 0;
+					client.stopTyping();
 					break;
 
 				case "USER_PROFILE_FETCH_SUCCESS":

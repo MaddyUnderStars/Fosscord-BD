@@ -203,9 +203,11 @@ export class Client extends EventTarget {
 		});
 	};
 
+	heartbeatSendDt: number = 0;
 	setHeartbeat = (interval: number) => {
 		if (this.#heartbeat) clearInterval(this.#heartbeat);
 
+		this.heartbeatSendDt = Date.now();
 		this.#send({
 			op: GatewayOpcode.Heartbeat,
 			d: this.sequence >= 0 ? this.sequence : null,
@@ -213,6 +215,7 @@ export class Client extends EventTarget {
 
 		this.debug(`set heartbeat interval to ${interval}`);
 		this.#heartbeat = setInterval(() => {
+			this.heartbeatSendDt = Date.now();
 			this.#send({
 				op: GatewayOpcode.Heartbeat,
 				d: this.sequence >= 0 ? this.sequence : null,
@@ -242,7 +245,6 @@ export class Client extends EventTarget {
 	};
 
 	#subscribedRanges: { [key: string]: [number, number]; } = {};
-
 	sendLazyRequest = (guild_id: string, channelId: string, ranges: [number, number]) => {
 		const subbed = this.#subscribedRanges[channelId];
 		if (subbed && subbed[0] == ranges[0] && subbed[1] == ranges[1]) return;
@@ -260,15 +262,17 @@ export class Client extends EventTarget {
 		});
 	};
 
-	lastTypingStart = 0;
-	typingCooldown = 10 * 1000;	// 10 seconds between each call. same behaviour as discord client
+	#lastTypingStart = 0;
+	#typingCooldown = 10 * 1000;	// 10 seconds between each call. same behaviour as discord client
 	startTyping = (channelId: string) => {
-		if (Date.now() < this.lastTypingStart + this.typingCooldown) return;
-		this.lastTypingStart = Date.now()
+		if (Date.now() < this.#lastTypingStart + this.#typingCooldown) return;
+		this.#lastTypingStart = Date.now()
 		HttpClient.send({
 			method: "POST",
 			path: `${this.instance!.apiUrl}/channels/${channelId}/typing`,
 			client: this,
 		})
 	}
+
+	stopTyping = () => this.#lastTypingStart = 0;
 }
