@@ -4,7 +4,7 @@ import { findIds } from "../util/Snowflake";
 
 export default function (this: FosscordPlugin) {
 	patcher.instead(
-		"fosscord",
+		"loadImage",
 		webpack.findByProps("isImageLoaded", "loadImage", "getBestMediaProxySize"),
 		"loadImage",
 		(args, original) => {

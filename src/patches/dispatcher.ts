@@ -7,7 +7,7 @@ import { findIds } from "../util/Snowflake";
 
 export default function (this: FosscordPlugin) {
 	patcher.instead(
-		"fosscord",
+		"dispatcher",
 		Dispatcher,
 		"dispatch",
 		(args: any[] | undefined, original: any) => {

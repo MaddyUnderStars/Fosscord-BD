@@ -3,7 +3,7 @@ import FosscordPlugin from "..";
 
 export default function (this: FosscordPlugin) {
 	patcher.instead(
-		"fosscord",
+		"lastEditableMessage",
 		webpack.findByProps("getLastEditableMessage"),
 		"getLastEditableMessage",
 		(args, original, thisArg) => {
@@ -21,8 +21,8 @@ export default function (this: FosscordPlugin) {
 	);
 
 	patcher.instead(
-		"fosscord",
-		webpack.findByProps("useConnectedUtilitiesProps").default,	// Message toolbar
+		"messageToolbar",
+		webpack.findByProps("useConnectedUtilitiesProps").default,
 		"type",
 		(args, original) => {
 			const e = args[0];

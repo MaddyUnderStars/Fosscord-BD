@@ -46,7 +46,7 @@ export default function (this: FosscordPlugin) {
 		"delete",
 	]) {
 		patcher.instead(
-			"fosscord",
+			`api${method.charAt(0)}${method.slice(1)}`,
 			webpack.findByProps("getAPIBaseURL"),
 			method,
 			async (args: any[], original: any) => {

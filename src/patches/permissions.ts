@@ -5,7 +5,7 @@ const { getCurrentUser } = webpack.findByProps("getCurrentUser");
 
 export default function (this: FosscordPlugin) {
 	patcher.instead(
-		"fosscord",
+		"guildIsOwner",
 		webpack.findByPrototype("hasCommunityInfoSubheader").prototype,
 		"isOwner",
 		(args: any[], original: any, thisArg: any) => {

@@ -4,7 +4,7 @@ import FosscordPlugin from "..";
 export default function (this: FosscordPlugin) {
 	// Anti tracking stuff
 	patcher.instead(
-		"fosscord",
+		"analytics",
 		webpack.findByProps("track", "setSystemAccessibilityFeatures"),
 		"track",
 		(args: any[], original: any) => {

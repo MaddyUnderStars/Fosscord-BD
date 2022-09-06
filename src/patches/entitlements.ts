@@ -2,9 +2,8 @@ import { patcher, webpack } from "ittai";
 import FosscordPlugin from "..";
 
 export default function (this: FosscordPlugin) {
-	// Anti tracking stuff
 	patcher.instead(
-		"fosscord",
+		"entitlements",
 		webpack.findByProps("fetchEntitlementsForGuild"),
 		"fetchEntitlementsForGuild",
 		(args: any[], original: any) => {

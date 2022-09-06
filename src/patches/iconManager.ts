@@ -37,7 +37,7 @@ export default function (this: FosscordPlugin) {
 	for (let method of iconManagerMethods) {
 		if (!iconManager[method]) continue;	// just in case
 		patcher.instead(
-			"fosscord",
+			method,
 			iconManager,
 			method,
 			iconManagerPatch,
@@ -50,7 +50,7 @@ export default function (this: FosscordPlugin) {
 		for (let method of iconManagerMethods) {
 			if (!iconManager.default[method]) continue;	// just in case
 			patcher.instead(
-				"fosscord",
+				method,
 				iconManager.default,
 				method,
 				iconManagerPatch,
@@ -72,7 +72,7 @@ export default function (this: FosscordPlugin) {
 	// );
 
 	patcher.instead(
-		"fosscord",
+		"getAvatarURL",
 		webpack.findByPrototype("getAvatarURL", "addGuildAvatarHash").prototype,
 		"getAvatarURL",
 		(args, original) => {
@@ -85,7 +85,7 @@ export default function (this: FosscordPlugin) {
 	);
 
 	patcher.instead(
-		"fosscord",
+		"getStickerAssetUrl",
 		webpack.findByProps("getStickerAssetUrl"),
 		"getStickerAssetUrl",
 		(args, original) => {
