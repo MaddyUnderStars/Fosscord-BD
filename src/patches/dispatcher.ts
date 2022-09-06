@@ -121,9 +121,11 @@ export default function (this: FosscordPlugin) {
 					event.guild_member = event.guild_member ?? { joined_at: null, premium_since: event.premium_since };
 					event.guild_member.roles = event.guild_member.roles ?? [];
 
+					// TODO: guild profiles
+					event.user_profile = event.user;
+
 					const guild_id = window.location.pathname.split("/")[2]; // actually disgusting. can't get it elsewhere tho
 					Dispatcher.dispatch({ type: "GUILD_MEMBER_PROFILE_UPDATE", guildId: guild_id, guildMember: event.guild_member });
-
 					break;
 
 				case "GUILD_SUBSCRIPTIONS_CHANNEL": // lazy guild member request op 14
