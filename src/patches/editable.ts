@@ -19,4 +19,27 @@ export default function (this: FosscordPlugin) {
 			return message;
 		}
 	);
+
+	patcher.instead(
+		"fosscord",
+		webpack.findByProps("useConnectedUtilitiesProps").default,	// Message toolbar
+		"type",
+		(args, original) => {
+			const e = args[0];
+			const author_id = e?.message?.author.id;
+			const client = this.findControllingClient(author_id);
+			if (!client) return original(...args);
+
+			if (e.message.author.id == client.user!.id) {
+				const currentUser = webpack.findByProps("getCurrentUser", "getUser").getCurrentUser();
+				e.message.author.id = currentUser.id; 
+			}
+
+			const ret = original(e);
+
+			e.message.author.id = author_id;
+
+			return ret;
+		}
+	)
 }
