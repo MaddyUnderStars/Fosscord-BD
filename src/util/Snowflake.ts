@@ -11,7 +11,12 @@ export const findIds = (obj: any, depth = 5): string[] => {
 			continue;
 		}
 		// bad way of checking if it looks like a proper snowflake
-		if (!value || value == "null" || value == "undefined") continue;
+		if (!value
+			|| value == "null"
+			|| value == "undefined"
+			|| typeof value == "symbol"
+		)
+			continue;
 		if (!Number(value)) continue;
 
 		const index = key.toLowerCase().indexOf("id");
