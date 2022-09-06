@@ -37,6 +37,20 @@ export class HttpClient {
 			method
 		} = options;
 
+		if (path.includes("application-commands")) {
+			client?.debug?.("Spoofing application-commands, not impl serverside.");
+			const body = {
+				applications: [],
+				application_commands: [],
+				cursor: {
+					previous: null,
+					next: null,
+					repaired: null,
+				}
+			}
+			return { body: body, text: JSON.stringify(body), status: 200, ok: true, headers: {} };
+		}
+
 		if (query) {
 			query = recursiveDelete(query); // can't have undef methods in here
 			path += "?" + new URLSearchParams(query).toString();
