@@ -43,6 +43,8 @@ export default function (this: FosscordPlugin) {
 				case "GUILD_SUBSCRIPTIONS_MEMBERS_REMOVE":
 				case "PRESENCE_UPDATES":
 				case "CHANNEL_SELECT":
+				case "SLOWMODE_RESET_COOLDOWN":
+				case "GUILD_SETTINGS_INIT":
 					return original(...args);
 			}
 
