@@ -17,7 +17,6 @@ export default function (this: FosscordPlugin) {
 			// pass through events TODO: remove because this was a stupid idea
 			switch (event.type) {
 				case "WINDOW_FOCUS":
-				case "SELF_PRESENCE_STORE_UPDATE":
 				case "EXPERIMENT_TRIGGER":
 				case "GUILD_DELETE":
 				case "UPDATE_CHANNEL_DIMENSIONS":
@@ -72,6 +71,12 @@ export default function (this: FosscordPlugin) {
 					})();
 
 					return;
+
+				case "SELF_PRESENCE_STORE_UPDATE":
+					for (let client of this.clients) {
+						client.sendActivity(event.status, event.activities);
+					}
+					break;
 			}
 
 			const ids = findIds(event);

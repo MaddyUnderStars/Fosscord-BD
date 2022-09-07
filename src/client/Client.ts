@@ -182,12 +182,12 @@ export class Client extends EventTarget {
 
 	#identity = () => {
 		const presence = getLocalPresence();
-		if (presence.activities) {
+		if (presence.activities && !this.instance?.useExperimentalFeatures) {
 			for (var activity of presence.activities) {
 				// Fosscord doesn't have Spotify integration, and doesn't allow these in IDENTIFY schema
 				delete activity.metadata;
 				delete activity.sync_id;
-				
+
 				activity.flags = "" + activity.flags; // fosscord assumes this is string
 			}
 		}
@@ -266,13 +266,39 @@ export class Client extends EventTarget {
 	#typingCooldown = 10 * 1000;	// 10 seconds between each call. same behaviour as discord client
 	startTyping = (channelId: string) => {
 		if (Date.now() < this.#lastTypingStart + this.#typingCooldown) return;
-		this.#lastTypingStart = Date.now()
+		this.#lastTypingStart = Date.now();
 		HttpClient.send({
 			method: "POST",
 			path: `${this.instance!.apiUrl}/channels/${channelId}/typing`,
 			client: this,
-		})
-	}
+		});
+	};
 
 	stopTyping = () => this.#lastTypingStart = 0;
+
+	sendActivity = (status: string, activities: Activity[]) => {
+		for (var i = 0; i < activities.length; i++) {
+			if (activities[i].flags)
+				activities[i].flags = activities[i].flags.toString();
+
+			if (activities[i].timestamps && activities[i].timestamps!.end && activities[i].timestamps!.start) {
+				//@ts-ignore
+				activities[i].timestamps!.end = parseInt(activities[i].timestamps.end!);
+				//@ts-ignore
+				activities[i].timestamps!.start = parseInt(activities[i].timestamps.start!);
+			}
+
+			delete activities[i].created_at;	// hmm
+		}
+
+		return this.#send({
+			op: GatewayOpcode.PresenceUpdate,
+			d: {
+				afk: false,
+				status: status,
+				since: Date.now(),
+				activities: !this.instance?.useExperimentalFeatures ? activities : [],
+			}
+		});
+	};
 }
