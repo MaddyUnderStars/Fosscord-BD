@@ -109,11 +109,11 @@ export default function (this: FosscordPlugin) {
 					return original(event);
 
 				case "MESSAGE_CREATE":
-					if (!event.optimistic) break;
+					if (!event.optimistic) return original(event);
 
 					event.message.author = makeUser(client.user!, client);
 					client.stopTyping();
-					break;
+					return original(event);
 
 				case "USER_PROFILE_FETCH_SUCCESS":
 					event.connected_accounts = event.connected_accounts ?? [];
@@ -126,7 +126,7 @@ export default function (this: FosscordPlugin) {
 
 					const guild_id = window.location.pathname.split("/")[2]; // actually disgusting. can't get it elsewhere tho
 					Dispatcher.dispatch({ type: "GUILD_MEMBER_PROFILE_UPDATE", guildId: guild_id, guildMember: event.guild_member });
-					break;
+					return original(event);
 
 				case "GUILD_SUBSCRIPTIONS_CHANNEL": // lazy guild member request op 14
 					client.sendLazyRequest(event.guildId, event.channelId, event.ranges);
