@@ -82,7 +82,7 @@ export class HttpClient {
 		};
 
 		const fetched = await tryFetch();
-		if (!fetched) return { body: {}, text: "", status: 500, ok: false, headers: {} };
+		if (!fetched || !fetched.headers.get("Content-Type")?.includes("json")) return { body: {}, text: "", status: 500, ok: false, headers: {} };
 
 		var parsedBody;
 		try {
