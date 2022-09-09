@@ -105,14 +105,6 @@ export class Client extends EventTarget {
 			this.instance.gatewayUrl = response.body!.url;
 		}
 
-
-		// We can't connect to insecure protocols because we're in a secure context
-		const parsedGateway = new URL(this.instance.gatewayUrl!);
-		if (parsedGateway.protocol == "ws:") {
-			parsedGateway.protocol = "wss:";
-			this.instance.gatewayUrl = parsedGateway.toString();
-		}
-
 		if (this.instance.apiUrl && !this.instance.info) {
 			// Get instance info from /ping route
 
