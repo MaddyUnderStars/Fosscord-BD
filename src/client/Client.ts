@@ -289,7 +289,7 @@ export class Client extends EventTarget {
 				afk: false,
 				status: status,
 				since: Date.now(),
-				activities: !this.instance?.useExperimentalFeatures ? activities : [],
+				activities: this.instance?.useExperimentalFeatures ? activities : [],
 			}
 		});
 	};
