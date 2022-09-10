@@ -15,96 +15,87 @@ interface InstanceProps {
 
 const InstanceElement: React.FC<InstanceProps> = (props) => {
 	props.showDelete = props.showDelete ?? true;
-	let { instance, setInstance } = props;
-	const [apiError, setApiError] = useState<string>();
-	const [tokenError, setTokenError] = useState<string>();
+	const { instance, setInstance } = props;
+	const [errors, setErrors] = useState<{ field: string, value: string; }[]>([]);
 
-	const openLoginModal = () => {
-		return (
-			<LoginModal
-				instance={instance}
-				onLogin={(token: string) => {
-					instance.token = token;
-					setInstance({ ...instance });
-				}}
-			/>
-		);
+	const clearError = (field: string) => {
+		setErrors(errors.filter(x => x.field !== field));
+	};
+
+	const addError = (field: string, value: string) => {
+		setErrors([...errors, { field: field, value: value }]);
+	};
+
+	const validateApiUrl = () => {
+		if (!instance.apiUrl)
+			return addError("url", "Required"), false;
+
+		try { new URL(instance.apiUrl); }
+		catch (e) { return addError("url", "Invalid URL"), false; }
+
+		clearError("api");
+		return true;
 	};
 
 	return (
 		<div className="fosscord-settings-instance">
-			<Forms.FormItem
-				title="API URL"
-			>
+			<Forms.FormItem title="API URL">
 				<TextInput
 					value={instance.apiUrl}
-					placeholder="API URL"
-					error={apiError}
+					placeholder={"API URL"}
+					error={errors.find(x => x.field == "url")?.value}
 					onChange={(value) => {
-						setApiError(undefined);
+						clearError("url");
 						setInstance({ ...instance, apiUrl: value });
 					}}
 				/>
 			</Forms.FormItem>
 
-			<Forms.FormItem
-				title="Token"
-			>
+			<Forms.FormItem title="Token">
 				<TextInput
 					//@ts-ignore
 					type="password"
-					error={tokenError}
 					value={instance.token}
-					placeholder="Token"
+					placeholder={"Token"}
+					error={errors.find(x => x.field == "token")?.value}
 					onChange={(value) => {
-						setTokenError(undefined);
+						clearError("token");
 						setInstance({ ...instance, token: value });
 					}}
 				/>
 			</Forms.FormItem>
 
-			<Flex align={Flex.Align.CENTER} justify={Flex.Justify.END}>
+			<Flex align={Flex.Align.CENTER} justify={Flex.Justify.END} className="fosscord-instance-buttons">
 				<Forms.FormItem>
 					<Button
 						onClick={() => {
-							if (!instance.apiUrl) {
-								return setApiError("Required");
-							}
-
-							try {
-								new URL(instance.apiUrl);
-							}
-							catch (e) {
-								return setApiError("Invalid URL");
-							}
-
-							setApiError(undefined);
-							ModalActions.openModal(openLoginModal, { modalKey: "fosscord-login" });
-						}}>
+							if (!validateApiUrl()) return;
+							ModalActions.openModal(() => {
+								return (
+									<LoginModal
+										instance={instance}
+										onLogin={(token: string) => {
+											const saved = { ...instance, token: token };
+											setInstance(saved);
+											props.onSave(saved);
+										}}
+									/>
+								);
+							}, { modalKey: "fosscord-login" });
+						}}
+					>
 						{"Login with password"}
 					</Button>
 				</Forms.FormItem>
 
 				<Forms.FormItem>
 					<Button
-						style={{ marginLeft: "10px" }}
 						onClick={() => {
-							if (!instance.apiUrl) {
-								return setApiError("Required");
-							}
+							if (!validateApiUrl()) return;
+							if (!instance.token)
+								return addError("token", "Required");
 
-							try {
-								new URL(instance.apiUrl);
-							}
-							catch (e) {
-								return setApiError("Invalid URL");
-							}
-
-							if (!instance.token) {
-								return setTokenError("Required");
-							}
-
-							setApiError(undefined);
+							clearError("token");
 							props.onSave(instance);
 						}}
 					>
@@ -113,17 +104,17 @@ const InstanceElement: React.FC<InstanceProps> = (props) => {
 				</Forms.FormItem>
 
 				{props.showDelete ? (
-					<Forms.FormItem
-						style={{ marginLeft: "10px" }}
-					>
+					<Forms.FormItem>
 						<Button
-							onClick={() => props.onDelete()}
 							color={Button.Colors.RED}
+							onClick={() => {
+								props.onDelete();
+							}}
 						>
 							{"Delete"}
 						</Button>
 					</Forms.FormItem>
-				) : (null)}
+				) : null}
 			</Flex>
 		</div >
 	);
