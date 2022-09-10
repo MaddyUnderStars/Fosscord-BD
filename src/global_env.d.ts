@@ -28,3 +28,8 @@ declare const GLOBAL_ENV: {
     HTML_TIMESTAMP: number,
     ALGOLIA_KEY: string
 }
+
+// hcaptcha api https://docs.hcaptcha.com/configuration/#jsapi
+declare const hcaptcha: {
+	reset: (widgetId?: string) => any;
+}
