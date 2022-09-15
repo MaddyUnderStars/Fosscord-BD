@@ -19,6 +19,7 @@ export default function (this: FosscordPlugin) {
 				case "WINDOW_FOCUS":
 				case "EXPERIMENT_TRIGGER":
 				case "GUILD_DELETE":
+				case "MESSAGE_DELETE":
 				case "UPDATE_CHANNEL_DIMENSIONS":
 				case "USER_PROFILE_MODAL_OPEN":
 				case "USER_PROFILE_FETCH_START":
