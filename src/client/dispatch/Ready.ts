@@ -1,6 +1,6 @@
 import { Dispatcher } from "ittai/webpack";
 import { DispatchHandler } from ".";
-import { makeUser, makeGuild } from "../../util/Builders";
+import { makeUser, makeGuild, makeChannel } from "../../util/Builders";
 import DispatchGuild from "../../util/DispatchGuild";
 import { Collection } from "@discordjs/collection";
 
@@ -36,6 +36,18 @@ const handler: DispatchHandler = function (payload) {
 			shouldNotifiy: false,
 		});
 		this.relationships.set(relationship.id, relationship);
+	}
+
+	for (var channel of payload.d.private_channels) {
+		channel.recipients = channel.recipients.map((x: any) => {
+			makeUser(x, this);	// adds to store
+			return x.id;
+		});
+		channel.recipients.push(this.user.id);	// todo: fix serverside
+		Dispatcher.dispatch({
+			type: "CHANNEL_CREATE",
+			channel: makeChannel(channel, this)
+		});
 	}
 
 	this.log(`Ready as ${this.user?.username}`);
