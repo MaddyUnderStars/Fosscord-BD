@@ -1,3 +1,5 @@
+# After Discord moved to swc, this plugin no longer works.
+
 # FosscordBD ( WIP )
 A Discord plugin built with [Ittai](https://git.catvibers.me/Ittai/ittai) that allows connections to multiple [Fosscord](https://github.com/fosscord/fosscord-server) instances.
 
